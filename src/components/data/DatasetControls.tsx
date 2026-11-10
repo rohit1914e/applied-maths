@@ -108,7 +108,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
 
       {mode === 'synthetic' ? (
         <form
-          className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4"
+          className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3"
           onSubmit={(e) => {
             e.preventDefault()
             generate()
@@ -131,20 +131,20 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
               ))}
             </div>
           </fieldset>
-          <label className="col-span-2 flex items-center gap-3 text-[21px]">
-            <input type="checkbox" className="h-6 w-6 accent-[#633f32]" checked={form.irregularSampling} onChange={(e) => setForm((f) => ({ ...f, irregularSampling: e.target.checked }))} />
+          <label className="col-span-2 flex items-center gap-3 text-sm">
+            <input type="checkbox" className="h-4 w-4 accent-[#633f32]" checked={form.irregularSampling} onChange={(e) => setForm((f) => ({ ...f, irregularSampling: e.target.checked }))} />
             Irregular probe times (uneven spacing)
           </label>
           <div className="col-span-2 mt-1 flex gap-3">
-            <button type="submit" className="btn">
+            <button type="submit" className="btn btn-primary">
               Generate dataset
             </button>
-            <button type="button" className="btn btn-quiet" onClick={() => setForm((f) => ({ ...f, seed: String(Number(f.seed || 0) + 1) }))}>
+            <button type="button" className="btn btn-secondary" onClick={() => setForm((f) => ({ ...f, seed: String(Number(f.seed || 0) + 1) }))}>
               Next seed
             </button>
           </div>
           {formErrors.length > 0 && (
-            <ul role="alert" className="col-span-2 space-y-1 text-[19px] font-semibold text-crimson">
+            <ul role="alert" className="col-span-2 space-y-1 text-sm font-semibold text-crimson">
               {formErrors.map((e) => (
                 <li key={e}>{e}</li>
               ))}
@@ -152,26 +152,26 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
           )}
         </form>
       ) : (
-        <div className="mt-6 flex min-h-0 flex-col">
-          <p className="small-copy text-muted">
+        <div className="mt-5 flex min-h-0 flex-col">
+          <p className="text-sm text-muted">
             Two columns with a header: <code className="num text-charcoal">timestamp,ping_ms</code>. Timestamps in seconds, increasing. Leave a latency cell empty (or write NA or timeout) for a missing measurement.
           </p>
           <div className="mt-4 flex gap-3">
-            <label htmlFor={fileId} className="btn">
+            <label htmlFor={fileId} className="btn btn-primary">
               Choose CSV file
             </label>
             <input id={fileId} type="file" accept=".csv,text/csv" className="sr-only" onChange={onFile} data-testid="csv-input" />
-            <button type="button" className="btn btn-quiet" onClick={() => loadCsvText(SAMPLE_CSV, 'sample.csv')}>
+            <button type="button" className="btn btn-secondary" onClick={() => loadCsvText(SAMPLE_CSV, 'sample.csv')}>
               Load sample CSV
             </button>
           </div>
           {csvMessage && (
-            <p className={`mt-4 text-[20px] font-semibold ${csvErrors.length ? 'text-crimson' : 'text-brown'}`} role="status">
+            <p className={`mt-4 text-sm font-semibold ${csvErrors.length ? 'text-crimson' : 'text-brown'}`} role="status">
               {csvMessage}
             </p>
           )}
           {csvErrors.length > 0 && (
-            <ul role="alert" className="num mt-2 max-h-[300px] space-y-1 overflow-y-auto text-[18px] text-crimson" data-testid="csv-errors">
+            <ul role="alert" className="num mt-2 max-h-[300px] space-y-1 overflow-y-auto text-sm text-crimson" data-testid="csv-errors">
               {csvErrors.map((e, i) => (
                 <li key={i}>
                   {e.line !== null ? `Line ${e.line}: ` : ''}
@@ -181,7 +181,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
             </ul>
           )}
           {csvWarnings.map((w) => (
-            <p key={w.message} className="mt-2 text-[18px] text-amber-ink">
+            <p key={w.message} className="mt-2 text-sm text-amber-ink">
               {w.message}
             </p>
           ))}

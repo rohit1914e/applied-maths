@@ -1,232 +1,256 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import type { Point } from '../../types/interpolation'
 import type { MeasurementStatus } from '../../types/measurement'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { useElementWidth } from '../../hooks/useViewport'
 import { fmt, fmtSeconds } from '../../utils/format'
 import { linearScale, niceTicks } from './scale'
 
 export interface PlotMeasurement {
   readonly index: number
   readonly x: number
-  /** observed value, or the reconstructed value when status is "reconstructed" */
+  /** observed value, or the estimate when status is "reconstructed" */
   readonly y: number | null
   readonly status: MeasurementStatus
 }
 
 interface LatencyPlotProps {
-  readonly width: number
-  readonly height: number
   readonly data: readonly PlotMeasurement[]
-  /** interpolant to draw; it animates in whenever `curveKey` changes */
+  readonly height?: number
+  /** interpolant to draw; animates in whenever `curveKey` changes (unless `curveReveal` is set) */
   readonly curve?: readonly Point[]
   readonly curveKey?: string
-  /** nodes used by the current estimate */
+  /** draw the curve to this fraction (0–1) instead of animating it */
+  readonly curveReveal?: number
+  /** nodes used by the current estimate (ringed) */
   readonly nodes?: readonly Point[]
   readonly selectedIndex?: number | null
   readonly onSelectMissing?: (index: number) => void
-  readonly yDomain?: readonly [number, number]
-  readonly tone?: 'light' | 'dark'
-  readonly label?: string
-  /** show values above observed points (only for short series) */
-  readonly showValues?: boolean
-  /** draw the line through reconstructed values as well (the completed series) */
+  /** observed points drawn in crimson (values that are about to disappear) */
+  readonly highlight?: ReadonlySet<number>
+  /** 0–1: highlighted points fade and drop away (a measurement being lost) */
+  readonly highlightFade?: number
+  /** join reconstructed values into the line (the completed series) */
   readonly connectReconstructed?: boolean
-  /** when set, the curve is drawn to this fraction (0–1) instead of animating in */
-  readonly curveReveal?: number
-  /** x position of a scanning guide line */
+  /** x position of a scanning guide */
   readonly scanX?: number | null
+  /** 0–1: how much of the series is drawn, left to right (for build-up animations) */
+  readonly drawn?: number
+  readonly yDomain?: readonly [number, number]
+  readonly label: string
 }
 
-const MARGIN = { top: 28, right: 28, bottom: 64, left: 84 }
+const M = { top: 14, right: 14, bottom: 34, left: 46 }
 
 /**
- * The latency chart used across chapters. Observed points are brown, missing records are
- * crimson slots on the time axis, reconstructed values are amber. Custom SVG keeps exact
- * control over the gap markers and lets GSAP draw the interpolant progressively.
+ * The latency chart used across the site. Observed points are brown, missing records are
+ * crimson rings on the time axis, reconstructed values are amber diamonds. It measures its
+ * container, so text stays the same size at every screen width. Hover shows the value.
  */
 export function LatencyPlot({
-  width,
-  height,
   data,
+  height = 320,
   curve,
   curveKey,
+  curveReveal,
   nodes,
   selectedIndex = null,
   onSelectMissing,
-  yDomain,
-  tone = 'light',
-  label = 'Latency over time',
-  showValues = false,
+  highlight,
+  highlightFade = 0,
   connectReconstructed = false,
-  curveReveal,
   scanX = null,
+  drawn = 1,
+  yDomain,
+  label,
 }: LatencyPlotProps) {
-  const scope = useRef<SVGSVGElement>(null)
+  const [box, width] = useElementWidth<HTMLDivElement>(720)
+  const svgRef = useRef<SVGSVGElement>(null)
   const reduced = useReducedMotion()
-  const dark = tone === 'dark'
-  const ink = dark ? '#e9e2d6' : '#252525'
-  const grid = dark ? '#3a332e' : '#e4dccf'
-  const axis = dark ? '#8f8579' : '#5f5751'
+  const [hover, setHover] = useState<number | null>(null)
 
   const { x, y, xTicks, yTicks } = useMemo(() => {
     const xs = data.map((d) => d.x)
     const values = [...data.flatMap((d) => (d.y === null ? [] : [d.y])), ...(curve ?? []).map((p) => p.y)]
-    const [rawLo, rawHi] = yDomain ?? [Math.min(...values), Math.max(...values)]
-    const pad = Math.max(2, (rawHi - rawLo) * 0.12)
-    const yTicksLocal = niceTicks(rawLo - pad, rawHi + pad, 5)
-    const yLo = Math.min(rawLo - pad, yTicksLocal[0])
-    const yHi = Math.max(rawHi + pad, yTicksLocal.at(-1)!)
+    const [lo, hi] = yDomain ?? [Math.min(...values), Math.max(...values)]
+    const pad = Math.max(1, (hi - lo) * 0.1)
+    const yt = niceTicks(lo - pad, hi + pad, height > 260 ? 5 : 4)
+    const yLo = Math.min(lo - pad, yt[0])
+    const yHi = Math.max(hi + pad, yt.at(-1)!)
     const xLo = Math.min(...xs)
     const xHi = Math.max(...xs)
     return {
-      x: linearScale([xLo, xHi], [MARGIN.left, width - MARGIN.right]),
-      y: linearScale([yLo, yHi], [height - MARGIN.bottom, MARGIN.top]),
-      xTicks: niceTicks(xLo, xHi, Math.min(10, Math.max(3, Math.round(width / 160)))).filter((t) => t >= xLo && t <= xHi),
-      yTicks: yTicksLocal.filter((t) => t >= yLo && t <= yHi),
+      x: linearScale([xLo, xHi], [M.left, width - M.right]),
+      y: linearScale([yLo, yHi], [height - M.bottom, M.top]),
+      xTicks: niceTicks(xLo, xHi, Math.max(3, Math.min(10, Math.round(width / 90)))).filter((t) => t >= xLo && t <= xHi),
+      yTicks: yt.filter((t) => t >= yLo && t <= yHi),
     }
   }, [data, curve, yDomain, width, height])
 
-  // observed polyline, broken wherever a record is missing
-  const observedPath = useMemo(() => {
+  const visible = useMemo(() => {
+    if (drawn >= 1 || data.length === 0) return data
+    const cutoff = data[0].x + (data[data.length - 1].x - data[0].x) * drawn + 1e-9
+    return data.filter((d) => d.x <= cutoff)
+  }, [data, drawn])
+
+  const linePath = useMemo(() => {
     let d = ''
     let pen = false
-    for (const m of data) {
-      if ((m.status === 'observed' || (connectReconstructed && m.status === 'reconstructed')) && m.y !== null) {
+    for (const m of visible) {
+      const joins = m.status === 'observed' || (connectReconstructed && m.status === 'reconstructed')
+      if (joins && m.y !== null) {
         d += `${pen ? 'L' : 'M'}${x(m.x).toFixed(1)},${y(m.y).toFixed(1)}`
         pen = true
       } else pen = false
     }
     return d
-  }, [data, x, y, connectReconstructed])
+  }, [visible, x, y, connectReconstructed])
 
-  const curvePath = useMemo(
-    () => (curve && curve.length > 1 ? curve.map((p, i) => `${i ? 'L' : 'M'}${x(p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('') : ''),
-    [curve, x, y],
-  )
+  const curvePath = useMemo(() => (curve && curve.length > 1 ? curve.map((p, i) => `${i ? 'L' : 'M'}${x(p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('') : ''), [curve, x, y])
 
   useGSAP(
     () => {
-      const path = scope.current?.querySelector<SVGPathElement>('[data-curve]')
-      if (!path || reduced || curveReveal !== undefined || typeof path.getTotalLength !== 'function') return
+      const path = svgRef.current?.querySelector<SVGPathElement>('[data-curve="animated"]')
+      if (!path || reduced || typeof path.getTotalLength !== 'function') return
       const length = path.getTotalLength()
-      gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' })
+      gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1, ease: 'power2.inOut' })
     },
-    { scope, dependencies: [curveKey, reduced] },
+    { scope: svgRef, dependencies: [curveKey, reduced] },
   )
 
-  const baseline = height - MARGIN.bottom
-  const pointRadius = data.length > 90 ? 4 : data.length > 40 ? 5.5 : 8
+  const baseline = height - M.bottom
+  const r = data.length > 120 ? 2.4 : data.length > 50 ? 3.2 : 4
   const nodeSet = new Set((nodes ?? []).map((n) => n.x))
+  const hovered = hover === null ? null : (data.find((d) => d.index === hover) ?? null)
+
+  const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const px = e.clientX - rect.left
+    let best: PlotMeasurement | null = null
+    for (const d of visible) if (!best || Math.abs(x(d.x) - px) < Math.abs(x(best.x) - px)) best = d
+    setHover(best && Math.abs(x(best.x) - px) < 24 ? best.index : null)
+  }
 
   return (
-    <svg ref={scope} width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} className="block overflow-visible">
-      {/* grid and axes */}
-      {yTicks.map((t) => (
-        <g key={`y${t}`}>
-          <line x1={MARGIN.left} x2={width - MARGIN.right} y1={y(t)} y2={y(t)} stroke={grid} strokeWidth={1.5} />
-          <text x={MARGIN.left - 14} y={y(t)} dy="0.35em" textAnchor="end" fontSize={19} fill={axis} className="num">
-            {fmt(t, t % 1 === 0 ? 0 : 1)}
-          </text>
-        </g>
-      ))}
-      <line x1={MARGIN.left} x2={width - MARGIN.right} y1={baseline} y2={baseline} stroke={axis} strokeWidth={2} />
-      {xTicks.map((t) => (
-        <text key={`x${t}`} x={x(t)} y={baseline + 30} textAnchor="middle" fontSize={19} fill={axis} className="num">
-          {fmtSeconds(t)}
-        </text>
-      ))}
-      <text x={width - MARGIN.right} y={baseline + 58} textAnchor="end" fontSize={18} fill={axis}>
-        time (s)
-      </text>
-      <text x={18} y={MARGIN.top - 4} fontSize={18} fill={axis}>
-        RTT (ms)
-      </text>
-
-      {/* missing slots: vertical guide and a hollow marker on the time axis */}
-      {data
-        .filter((m) => m.status !== 'observed')
-        .map((m) => {
-          const selected = m.index === selectedIndex
-          const interactive = onSelectMissing && m.status !== 'observed'
-          return (
-            <g
-              key={`gap${m.index}`}
-              data-testid={`gap-${m.index}`}
-              data-status={m.status}
-              onClick={interactive ? () => onSelectMissing(m.index) : undefined}
-              style={{ cursor: interactive ? 'pointer' : 'default' }}
-            >
-              <line
-                x1={x(m.x)}
-                x2={x(m.x)}
-                y1={MARGIN.top}
-                y2={baseline}
-                stroke="#8e252d"
-                strokeOpacity={selected ? 0.9 : 0.28}
-                strokeWidth={selected ? 2.5 : 1.5}
-                strokeDasharray="6 7"
-              />
-              <circle cx={x(m.x)} cy={baseline} r={selected ? 11 : 8} fill={dark ? '#1e1a17' : '#faf8f4'} stroke="#8e252d" strokeWidth={3} />
-              {interactive && <rect x={x(m.x) - 14} y={MARGIN.top} width={28} height={baseline - MARGIN.top + 14} fill="transparent" />}
-            </g>
-          )
-        })}
-
-      {/* observed series */}
-      <path d={observedPath} fill="none" stroke={dark ? '#c9b8a6' : '#633f32'} strokeWidth={2.5} strokeLinejoin="round" strokeOpacity={0.75} />
-      {data
-        .filter((m) => m.status === 'observed' && m.y !== null)
-        .map((m) => (
-          <g key={`p${m.index}`}>
-            <circle
-              cx={x(m.x)}
-              cy={y(m.y!)}
-              r={nodeSet.has(m.x) ? pointRadius + 4 : pointRadius}
-              fill={nodeSet.has(m.x) ? '#faf8f4' : dark ? '#e9e2d6' : '#633f32'}
-              stroke={nodeSet.has(m.x) ? '#633f32' : 'none'}
-              strokeWidth={nodeSet.has(m.x) ? 4 : 0}
-            />
-            {showValues && (
-              <text x={x(m.x)} y={y(m.y!) - 22} textAnchor="middle" fontSize={22} fill={ink} className="num">
-                {fmt(m.y!, 0)}
-              </text>
-            )}
+    <div ref={box} className="relative w-full">
+      <svg
+        ref={svgRef}
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={label}
+        className="block overflow-visible"
+        onPointerMove={onMove}
+        onPointerLeave={() => setHover(null)}
+      >
+        {yTicks.map((t) => (
+          <g key={`y${t}`}>
+            <line x1={M.left} x2={width - M.right} y1={y(t)} y2={y(t)} stroke="#ece5d9" />
+            <text x={M.left - 8} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11.5} fill="#5f5751" className="num">
+              {fmt(t, Number.isInteger(t) ? 0 : 1)}
+            </text>
           </g>
         ))}
-
-      {/* interpolant */}
-      {scanX !== null && <line x1={x(scanX)} x2={x(scanX)} y1={MARGIN.top - 8} y2={baseline} stroke="#c18b52" strokeWidth={2} strokeOpacity={0.8} />}
-      {curvePath &&
-        (curveReveal === undefined ? (
-          <path data-curve d={curvePath} fill="none" stroke="#c18b52" strokeWidth={4} strokeLinecap="round" />
-        ) : (
-          <path d={curvePath} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - curveReveal} fill="none" stroke="#c18b52" strokeWidth={4} strokeLinecap="round" />
+        <line x1={M.left} x2={width - M.right} y1={baseline} y2={baseline} stroke="#8f8579" />
+        {xTicks.map((t) => (
+          <text key={`x${t}`} x={x(t)} y={baseline + 18} textAnchor="middle" fontSize={11.5} fill="#5f5751" className="num">
+            {fmtSeconds(t)}
+          </text>
         ))}
+        <text x={width - M.right} y={baseline + 32} textAnchor="end" fontSize={11} fill="#8f8579">
+          time (s)
+        </text>
+        <text x={M.left - 8} y={M.top - 4} textAnchor="end" fontSize={11} fill="#8f8579">
+          ms
+        </text>
 
-      {/* reconstructed values */}
-      {data
-        .filter((m) => m.status === 'reconstructed' && m.y !== null)
-        .map((m) => (
-          <g key={`r${m.index}`} data-testid={`reconstructed-${m.index}`}>
+        {scanX !== null && <line x1={x(scanX)} x2={x(scanX)} y1={M.top} y2={baseline} stroke="#c18b52" strokeWidth={1.5} />}
+
+        {visible
+          .filter((m) => m.status !== 'observed')
+          .map((m) => {
+            const selected = m.index === selectedIndex
+            return (
+              <g
+                key={`gap${m.index}`}
+                data-testid={`gap-${m.index}`}
+                onClick={onSelectMissing ? () => onSelectMissing(m.index) : undefined}
+                style={{ cursor: onSelectMissing ? 'pointer' : 'default' }}
+              >
+                <line x1={x(m.x)} x2={x(m.x)} y1={M.top} y2={baseline} stroke="#8e252d" strokeOpacity={selected ? 0.8 : 0.22} strokeDasharray="4 5" />
+                <circle cx={x(m.x)} cy={baseline} r={selected ? 6.5 : 5} fill="#faf8f4" stroke="#8e252d" strokeWidth={2} />
+                {onSelectMissing && <rect x={x(m.x) - 10} y={M.top} width={20} height={baseline - M.top + 10} fill="transparent" />}
+              </g>
+            )
+          })}
+
+        <path d={linePath} fill="none" stroke="#633f32" strokeOpacity={0.7} strokeWidth={1.75} strokeLinejoin="round" />
+        {visible
+          .filter((m) => m.status === 'observed' && m.y !== null)
+          .map((m) => {
+            const isNode = nodeSet.has(m.x)
+            const hot = highlight?.has(m.index)
+            return (
+              <circle
+                key={`p${m.index}`}
+                data-testid={hot ? `highlight-${m.index}` : undefined}
+                cx={x(m.x)}
+                cy={y(m.y!) + (hot ? 28 * highlightFade : 0)}
+                opacity={hot ? 1 - highlightFade : 1}
+                r={isNode ? r + 2.5 : hot ? r + 1 : r}
+                fill={isNode ? '#faf8f4' : hot ? '#8e252d' : '#633f32'}
+                stroke={isNode ? '#633f32' : 'none'}
+                strokeWidth={isNode ? 2.5 : 0}
+              />
+            )
+          })}
+
+        {curvePath &&
+          (curveReveal === undefined ? (
+            <path data-curve="animated" d={curvePath} fill="none" stroke="#c18b52" strokeWidth={2.75} strokeLinecap="round" />
+          ) : (
+            <path d={curvePath} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - curveReveal} fill="none" stroke="#c18b52" strokeWidth={2.75} strokeLinecap="round" />
+          ))}
+
+        {visible
+          .filter((m) => m.status === 'reconstructed' && m.y !== null)
+          .map((m) => (
             <rect
-              x={x(m.x) - pointRadius - 2}
-              y={y(m.y!) - pointRadius - 2}
-              width={(pointRadius + 2) * 2}
-              height={(pointRadius + 2) * 2}
+              key={`r${m.index}`}
+              data-testid={`reconstructed-${m.index}`}
+              x={x(m.x) - r - 1.5}
+              y={y(m.y!) - r - 1.5}
+              width={(r + 1.5) * 2}
+              height={(r + 1.5) * 2}
               transform={`rotate(45 ${x(m.x)} ${y(m.y!)})`}
               fill="#c18b52"
-              stroke={dark ? '#faf8f4' : '#633f32'}
-              strokeWidth={2}
+              stroke="#633f32"
+              strokeWidth={1.25}
             />
-            {showValues && (
-              <text x={x(m.x)} y={y(m.y!) - 26} textAnchor="middle" fontSize={22} fill={dark ? '#e7c497' : '#7f5426'} className="num">
-                {fmt(m.y!, 1)}
-              </text>
-            )}
-          </g>
-        ))}
-    </svg>
+          ))}
+
+        {hovered && <line x1={x(hovered.x)} x2={x(hovered.x)} y1={M.top} y2={baseline} stroke="#252525" strokeOpacity={0.25} />}
+      </svg>
+
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-10 rounded-md border border-rule bg-white px-2.5 py-1.5 text-xs shadow-md"
+          style={{ left: Math.min(width - 150, Math.max(0, x(hovered.x) + 10)), top: 6 }}
+        >
+          <span className="num">t = {fmtSeconds(hovered.x)} s</span>
+          <br />
+          {hovered.status === 'missing' ? (
+            <span className="font-semibold text-crimson">missing</span>
+          ) : (
+            <span className={`num font-semibold ${hovered.status === 'reconstructed' ? 'text-amber-ink' : ''}`}>
+              {fmt(hovered.y!, 2)} ms{hovered.status === 'reconstructed' ? ' (estimate)' : ''}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

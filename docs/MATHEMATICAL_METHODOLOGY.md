@@ -31,7 +31,7 @@ around $t^\*$ and (b) a degree cap.
 $$ P(x) = \sum_{i=0}^{n} y_i L_i(x),\qquad L_i(x) = \prod_{j\ne i}\frac{x-x_j}{x_i-x_j}. $$
 
 $L_i(x_j)=\delta_{ij}$, so $P(x_i)=y_i$. Also $\sum_i L_i(x)=1$ (interpolating the constant 1),
-which the app displays as a check in scene 5 (Lagrange working).
+which the app displays as a check in the reconstruction section (Lagrange working).
 
 ### 2.2 Newton divided differences
 

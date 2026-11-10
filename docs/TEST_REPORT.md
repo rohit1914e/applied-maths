@@ -1,94 +1,97 @@
 # Test Report
 
-Run on 2026-11-10 after the redesign into a scroll-driven experience. Windows 11, Node 24.13.0,
-Chromium (Playwright 1.65, headless shell 1254). Every result below comes from running the
-commands; nothing is skipped or marked `.only`/`.skip`.
+Run on 2026-11-10 after the website redesign. Windows 11, Node 24.13.0, Chromium (Playwright
+1.65, headless shell 1254). Every result below comes from running the commands; nothing is
+skipped or marked `.only`/`.skip`.
 
 | Check | Command | Result |
 | --- | --- | --- |
 | Lint | `npm run lint` (oxlint) | 0 warnings, 0 errors |
 | Type-check | `npm run typecheck` (`tsc -b`, TypeScript 7) | pass |
-| Unit + component | `npm test` (Vitest 5, jsdom) | **78 / 78 passed**, 4 files |
-| End-to-end | `npm run test:e2e` (build + Playwright) | **15 / 15 passed** |
+| Unit + component | `npm test` (Vitest 5, jsdom) | **78 / 78 passed**, 5 files |
+| End-to-end | `npm run test:e2e` (build + Playwright, 3 workers) | **14 / 14 passed** |
 | Production build | `npm run build` | pass |
 
-## Numerical core — `src/algorithms/algorithms.test.ts` (25, unchanged by the redesign)
+## Numerical core — `src/algorithms/algorithms.test.ts` (25, unchanged)
 
-Validation (sorting without mutation, duplicate and near-duplicate nodes, non-finite values, too
-few nodes); Lagrange (exact cubic recovery, node reproduction, basis sums to 1 and Kronecker
-property, hand-worked example, extrapolation and degree cap rejected, uneven spacing); Newton
-(divided-difference table against hand values, nested evaluation, agreement with Lagrange);
-natural cubic spline (interpolation, continuity of S, S′, S″ at interior knots, S″ = 0 at the
-ends, exact straight line, reported system satisfied, two-node case); node selection.
+Validation (sorted copy, duplicate and near-duplicate nodes, non-finite values, too few nodes);
+Lagrange (exact cubic recovery, node reproduction, basis sums to 1 and Kronecker property,
+hand-worked example, extrapolation and degree cap rejected, uneven spacing); Newton (table against
+hand values, nested evaluation, agreement with Lagrange); natural cubic spline (interpolation,
+continuity of S, S′, S″, natural ends, exact straight line, reported system satisfied, two-node
+case); node selection.
 
 ## Data, pipeline and evaluation — `src/data/data.test.ts` (26, unchanged)
 
-Seeded generator; masks (share, endpoints kept, bursts); isolation (reconstructions unchanged when
-every ground-truth value is replaced by −999; only observed records become nodes); reconstruction
-pipeline; MAE/RMSE/max error against hand values and invalid sets; accuracy experiment including
-the Lagrange/Newton tie; CSV parsing and every error type with line numbers; probe simulator.
+Seeded generator; masks; ground-truth isolation (reconstructions unchanged when every truth value is
+replaced by −999; only observed records become nodes); reconstruction pipeline; MAE/RMSE/max error
+against hand values and invalid sets; accuracy experiment including the Lagrange/Newton tie; CSV
+parsing and every error type with line numbers; probe simulator.
 
-## Experience logic — `src/experience/experience.test.ts` (17, new)
+## Preparation pipeline and helpers — `src/data/pipeline.test.ts` (9)
 
-* Story timeline: scene layout, position → scene/progress/fade-in, exactly two scenes during a
-  cross-fade, beat stepping in both directions, sub-step mapping.
-* Number store notifies only on change.
-* Keyboard: Space/arrows/PageUp/PageDown/Shift+Space, scene keys, P/M/+/−/R/Home/N/F; ignored in
-  form fields, with modifiers, and for scene numbers that do not exist; Space on a button presses it.
-* Preparation pipeline: rejects exactly the four injected faults with reasons; arrives out of
-  order and sorts; reproduces the observed dataset exactly (values and missing records); keeps
-  the original of a duplicate; works for CSV data.
-* Interpolation helpers: Lagrange basis functions equal the values in the sum; Newton partial
-  polynomials interpolate their first k+1 nodes and end at the full polynomial; focus-gap choice.
-* Network profile: loss rate within 3 percentage points of the requested 20 % over 2000 probes;
-  heavier load raises mean RTT.
+Exactly the four injected faults rejected with reasons; out-of-order arrival sorted; output equals
+the observed dataset (values and missing records); first of a duplicate kept; works for CSV data;
+Lagrange basis functions equal the values in the sum; Newton partial polynomials; focus-gap
+choice; network profile loss rate and load.
 
-## Scenes and shell — `src/scenes/scenes.test.tsx` (10, new)
+## Live network engine — `src/simulation/networkSimulation/liveEngine.test.ts` (8, new)
 
-* Shell: opens on the live network, keyboard jumps and Home; presenter notes outside the stage
-  and the fullscreen root, listing the scene's steps; every control present; pause, speed and
-  reduced-motion state.
-* Each scene at fixed progress shows algorithm output: scene 1 gaps equal the timeout readout;
-  scene 2 vanished points and computed coverage; scene 3 counts and all four rejection reasons;
-  scene 4 estimates equal `reconstruct()` for Lagrange, Newton and spline, and Lagrange = Newton
-  in Compare; scene 5 every estimate drawn and logged with the pipeline's value; scene 6 running
-  MAE/RMSE/max equal the evaluation module; scene 7 summary and credits.
+Full trace and probes in flight at start; about one probe per simulated second with a fixed window;
+deterministic per seed; every packet position stays between client and server; loss rate 0 and 1
+produce no and only timeouts; hop durations clamped; mean and jitter skip timeouts; empty trace.
 
-## End-to-end — `e2e/presentation.spec.ts` (15)
+## Website — `src/site/site.test.tsx` (10, new)
 
-1. The landing is live: the probe counter rises and packet dots move within seconds; no errors.
-2. Nothing advances after six idle seconds.
-3. The mouse wheel moves through the story and cross-fades scene 1 into scene 2.
-4. Keyboard: Space/↓/↑ step beats (including a quick second press), → changes scene, digits jump, Home restarts.
-5. All seven scenes render with the right titles and no page or console errors; screenshots attached.
-6. Pause freezes the simulation (counter constant for 2.5 s); Resume continues it.
-7. Speed 2× produces at least five probes in three seconds.
-8. Reduced motion stops ambient animation; steps land instantly on finished constructions.
-9. Scene 4 tabs drive the scroll; the Newton table and estimate appear; Compare shows Lagrange = Newton.
-10. Fullscreen contains only the stage and controls; notes are excluded and return afterwards.
-11. Notes in a separate window follow the story; keys pressed there drive it.
-12. CSV with a duplicate timestamp is rejected with its line number; the sample CSV flows through
-    reconstruction ("2 of 2 gaps estimated") and evaluation (holdout); no errors.
-13–15. 1366 × 768, 1280 × 800 and 390 × 844: no horizontal scroll, 16:9 stage inside the viewport,
-    control bar fits; at 1366 × 768 a screenshot of every scene is attached.
+* Structure: navigation with six links whose targets exist, hero heading and call to action, all
+  sections present, **no presentation toolbar and no fixed stage**; mobile menu opens and closes.
+* Hero metrics come from the simulation; simulation pause/resume/speed/reset and loss slider; the
+  number of trace gaps equals the timeout count.
+* Missing data toggle highlights exactly the masked records, then shows them as gaps.
+* Dataset table has one row per record and one "Missing" badge per gap; all four rejection reasons;
+  CSV import rejects a negative latency with its line number, then updates the table and the
+  reconstruction section.
+* Methods: Lagrange, Newton and spline estimates equal `reconstruct()`; changing the missing point
+  changes the estimate to the algorithm's value for that point.
+* Reconstruction: every gap drawn and listed with the pipeline's value; Original hides estimates;
+  switching to Lagrange shows Lagrange's values.
+* Evaluation cards equal the evaluation module; "Lowest RMSE" only on the tied-best methods; key
+  findings contain the best RMSE; credits in the footer.
+
+## End-to-end — `e2e/website.spec.ts` (14)
+
+1. Opens as a website: navbar links, hero call to action, moving packets, no stage or toolbar, page
+   taller than 4000 px; no console errors.
+2. Navigation links scroll to their sections and mark the current one.
+3. Simulation runs, pauses (counter frozen), resumes at 4× (≥ 6 probes in 2.5 s), resets, and pauses
+   itself when scrolled off-screen.
+4. Missing data loses measurements on first view and toggles Complete/Incomplete.
+5. Dataset table (48 rows), 4 rejected rows, CSV duplicate rejected with line number, sample CSV flows
+   to reconstruction ("2 of 2") and evaluation (holdout); no errors.
+6. Methods: construction finishes with an estimate marker; Newton equals Lagrange; spline; Replay.
+7. Reconstruction animates ("Estimating …") to "9 of 9" with 9 amber markers; Original hides them.
+8. Evaluation cards, best-method badge, bar chart, interpretation.
+9. Chart tooltip on hover.
+10. Reduced motion: simulation paused, constructions finished immediately.
+11–14. 1920, 1366, 1024 and 390 px: no horizontal overflow after visiting every section, no errors;
+    mobile menu navigation at 390 px; full-page screenshot attached for each width.
+
+## Performance
+
+Measured in Chromium at 1920 × 1080 by counting animation frames for two seconds per section: about
+60 fps in the hero, simulation, methods, reconstruction and evaluation sections, longest frame
+17–33 ms. Frame loops run only while their section is visible (verified: the simulation reports
+"Paused while off-screen"). Not measured on the presenter's RTX 3050 laptop.
+
+Playwright runs with 3 workers: with 8 parallel browsers each running live animations, this laptop's
+CPU was saturated and timing-based tests timed out. Single-worker runs of the same tests passed.
 
 ## Visual QA
 
-Every step of every scene was screenshotted at 1920 × 1080 by a keyboard walk (34 frames) and
-reviewed, plus 1366 × 768 frames. Defects found and fixed: half-empty trace at load; first live
-measurement arriving after ~4 s; preparation caption one stage ahead at stage boundaries; faded
-chips showing through the clean dataset; Newton expansion overflowing its column; estimate labels
-crossing curves; mis-rounded y-axis ticks (42.5 shown as 43); Compare lacking estimate markers and
-a visible dashed spline; lollipop labels colliding; clipped bar labels; a second quick Space press
-re-targeting the same step; Space re-pressing a mouse-clicked control; floating-point boundary
-landing a tab one method early.
-
-## Performance notes
-
-Only scene 1 runs a frame loop, and only while it is on screen, not paused and motion is allowed;
-it updates packet positions by setting SVG attributes, not React state. Other scenes animate from
-scroll position and GSAP timelines (no idle loop). Scenes not on screen are unmounted. These were
-verified by behaviour (pause test), not by profiling on the presenter's RTX 3050 laptop.
+Every section was screenshotted at 1920, 1366, 1024 and 390 px and reviewed. Fixed: charts widening
+their single-column container on mobile (384 px overflow), empty space under stretched cards, chart
+legend overlapping axis labels, a "0.0" axis tick, an uncomputed claim in the key findings (replaced
+by the measured largest error), truncated method tabs on phones.
 
 ## Known gaps
 

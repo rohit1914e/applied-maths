@@ -16,7 +16,7 @@ interface DatasetContextValue {
   readonly setNodeCount: (count: number) => void
   readonly holdout: { percent: number; seed: number }
   readonly setHoldout: (holdout: { percent: number; seed: number }) => void
-  /** the accuracy experiment (scene 6), recomputed from live algorithm output whenever inputs change */
+  /** the accuracy experiment (evaluation section), recomputed from live algorithm output whenever inputs change */
   readonly experiment: AccuracyExperiment | null
   readonly experimentError: string | null
 }
@@ -35,7 +35,7 @@ export function DatasetProvider({ children, initial }: { children: ReactNode; in
     try {
       const plan = planExperiment(bundle, holdout.percent, holdout.seed)
       if (plan.hiddenPositions.length === 0) {
-        return { experiment: null, experimentError: 'No measurements are hidden, so there is nothing to evaluate. Increase the missing share in scene 3.' }
+        return { experiment: null, experimentError: 'No measurements are hidden, so there is nothing to evaluate. Increase the missing share in the dataset section.' }
       }
       return { experiment: runAccuracyExperiment(plan.reference, plan.hiddenPositions, nodeCount), experimentError: null }
     } catch (error) {

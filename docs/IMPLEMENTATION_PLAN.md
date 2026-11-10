@@ -65,3 +65,19 @@ Added modules: `src/experience/*`, `src/scenes/*`, `src/data/preparation/prepara
 `src/reconstruction/focus.ts`, `lagrangeBasisFunction`, `newtonPartialPolynomial`, and a network
 profile (loss probability, load over time) for the probe simulator. New tests: 17 experience/pipeline
 tests, 10 scene/shell tests, a rewritten 15-test Playwright suite.
+
+## Second redesign (2026-11-10): a real website
+
+Feedback: the scroll story still looked like a presentation (fixed 16:9 canvas, oversized type,
+bottom toolbar). The whole presentation layer was replaced by a normal responsive website.
+
+| Removed | Replaced by |
+| --- | --- |
+| Fixed 1920 × 1080 stage, black frame, fullscreen layout | Full-width page, 1400 px content width, responsive grids |
+| Bottom presentation toolbar, beat stepping, scene timeline | Sticky navbar with scrollspy and mobile menu; normal scrolling |
+| Canvas-sized typography | 16 px body, 40 px section headings, 60 px hero title |
+| Presenter notes window | Explanations in the page; viva answers in docs/VIVA_QUESTIONS.md |
+
+Kept unchanged: algorithms, generator, masks, CSV import, preparation pipeline, reconstruction,
+metrics, ground-truth isolation and their tests. New: a pure live-network engine (tested), a
+responsive `LatencyPlot` with tooltips, GSAP construction progress, viewport-aware animation.

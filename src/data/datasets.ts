@@ -26,14 +26,3 @@ export function createCsvBundle(fileName: string, rows: readonly CsvRow[]): Data
     fileName,
   )
 }
-
-/** Chapter 3's illustrative timeline; values are example data, not algorithm output. */
-export const TIMELINE_EXAMPLE: readonly { t: number; ping: number | null }[] = [
-  { t: 1, ping: 24 },
-  { t: 2, ping: 28 },
-  { t: 3, ping: 31 },
-  { t: 4, ping: null },
-  { t: 5, ping: 42 },
-  { t: 6, ping: null },
-  { t: 7, ping: 48 },
-]

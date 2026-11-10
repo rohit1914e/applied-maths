@@ -5,6 +5,8 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results',
   fullyParallel: true,
+  // each page runs live animations; more parallel browsers than this starve a laptop CPU
+  workers: 3,
   retries: 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   use: {

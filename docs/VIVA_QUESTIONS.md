@@ -50,7 +50,7 @@ The second-derivative system is tridiagonal and strictly diagonally dominant, so
 algorithm solves it in O(n) without pivoting.
 
 **Do your methods support uneven spacing?**
-Yes. Lagrange and Newton use actual x differences; the spline uses hᵢ = xᵢ₊₁ − xᵢ. Scene 3 (Change dataset) can
+Yes. Lagrange and Newton use actual x differences; the spline uses hᵢ = xᵢ₊₁ − xᵢ. The dataset section can
 generate irregular probe times.
 
 **How do you avoid division by zero?**
@@ -103,10 +103,10 @@ privileged sockets and is listed as a future extension.
 
 **How did you test the software?**
 78 Vitest unit/component tests (numerical properties, isolation, CSV validation, metrics, the
-preparation pipeline, scroll timeline, and every scene's displayed numbers checked against the
-algorithms) and 15 Playwright end-to-end tests (live simulation, wheel and keyboard navigation,
-pause, speed, reduced motion, fullscreen, notes, data flow, three screen sizes), plus lint,
-type-check and a production build. See TEST_REPORT.md.
+preparation pipeline, the live-network engine, and the website's displayed numbers checked against
+the algorithms) and 14 Playwright end-to-end tests (live simulation and its controls, navigation,
+data flow, constructions, reduced motion, four screen widths), plus lint, type-check and a
+production build. See TEST_REPORT.md.
 
 **Are the animations just illustrations, or real calculations?**
 Real. Each frame is drawn from the algorithms' output: the basis curves are the actual Lᵢ(x), the
@@ -114,9 +114,10 @@ Newton curve grows through the actual partial polynomials Pₖ, the spline segme
 coefficients, and the running MAE/RMSE are recomputed from the pairs revealed so far. Tests compare
 the numbers on screen with the algorithm functions.
 
-**Why scroll-driven?**
-The presenter controls the pace, and scrolling back reverses a construction, which helps when an
-examiner asks to see a step again. Nothing advances by itself.
+**Why a website rather than slides?**
+Every section is interactive and recomputes from the data: an examiner can change the dataset,
+the missing point, the method or the node count and see the arithmetic update. Replay buttons
+re-run any construction.
 
 **What would you add next?**
 A local service for real ICMP collection, uncertainty bands for estimates, and comparison with

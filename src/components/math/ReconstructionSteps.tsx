@@ -6,7 +6,7 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
   const d = outcome.detail
   if (d.method === 'lagrange') {
     return (
-      <table className="num w-full text-[19px]">
+      <table className="num w-full text-sm">
         <thead className="text-left text-muted">
           <tr>
             <th className="font-sans font-semibold">i</th>
@@ -37,7 +37,7 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
   }
   if (d.method === 'newton') {
     return (
-      <div className="grid grid-cols-2 gap-x-10 text-[19px]">
+      <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
         <div>
           <p className="font-semibold">Coefficients from the divided-difference table</p>
           <ul className="num mt-1 space-y-0.5">
@@ -64,7 +64,7 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
   const seg = d.segment
   const s = d.spline
   return (
-    <div className="grid grid-cols-2 gap-x-10 text-[19px]">
+    <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
       <div>
         <p className="font-semibold">Spline over {s.nodes.length} observed knots</p>
         <ul className="num mt-1 space-y-0.5">
