@@ -34,3 +34,6 @@ playwright-report/
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Vercel CLI project link (machine-specific)
+.vercel
