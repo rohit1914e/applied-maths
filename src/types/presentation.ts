@@ -1,11 +1,5 @@
 import type { ComponentType } from 'react'
-
-export interface ChapterProps {
-  /** current build inside the chapter, 0 … builds */
-  readonly step: number
-  /** go to the next chapter (used by explicit controls such as "Start presentation") */
-  readonly onNextChapter: () => void
-}
+import type { Beat } from '../experience/timeline'
 
 export interface PresenterNotes {
   /** what to explain, in order */
@@ -17,15 +11,14 @@ export interface PresenterNotes {
   readonly questions: readonly { readonly q: string; readonly a: string }[]
 }
 
-export interface ChapterDefinition {
+export interface SceneDefinition {
   readonly id: string
   readonly number: number
   readonly title: string
-  /** number of presenter-triggered builds after the initial composition */
-  readonly builds: number
-  /** names shown in the control bar for each build (length = builds) */
-  readonly buildLabels: readonly string[]
-  readonly tone: 'light' | 'dark'
+  /** scroll length in screens */
+  readonly length: number
+  /** presenter stops inside the scene; the first is always at 0 */
+  readonly beats: readonly Beat[]
   readonly notes: PresenterNotes
-  readonly load: () => Promise<{ default: ComponentType<ChapterProps> }>
+  readonly load: () => Promise<{ default: ComponentType }>
 }

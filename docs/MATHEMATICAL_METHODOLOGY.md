@@ -31,7 +31,7 @@ around $t^\*$ and (b) a degree cap.
 $$ P(x) = \sum_{i=0}^{n} y_i L_i(x),\qquad L_i(x) = \prod_{j\ne i}\frac{x-x_j}{x_i-x_j}. $$
 
 $L_i(x_j)=\delta_{ij}$, so $P(x_i)=y_i$. Also $\sum_i L_i(x)=1$ (interpolating the constant 1),
-which the app displays as a check in chapter 6.
+which the app displays as a check in scene 5 (Lagrange working).
 
 ### 2.2 Newton divided differences
 
@@ -64,7 +64,7 @@ Uneven spacing is handled naturally through the $h_i$. Among all $C^2$ interpola
 spline minimises $\int (S'')^2$, i.e. it is the "smoothest" curve through the data — which is why
 it does not oscillate like a high-degree polynomial.
 
-## 3. Worked example (chapter 5, computed by the app)
+## 3. Worked example (hand-checked, and reproduced by a unit test)
 
 Known: $(1,24), (2,28), (3,31), (5,42), (7,48)$; target $t^\*=4$.
 

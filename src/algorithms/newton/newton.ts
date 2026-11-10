@@ -61,3 +61,21 @@ export function newtonPolynomial(nodes: readonly Point[]): (x: number) => number
     return acc
   }
 }
+
+/**
+ * The Newton polynomial truncated after term k:
+ *   P_k(x) = a_0 + a_1(x − x_0) + … + a_k(x − x_0)…(x − x_{k−1})
+ * P_k interpolates the first k+1 nodes; P_n is the full polynomial. Used to show the
+ * polynomial being built one divided difference at a time.
+ */
+export function newtonPartialPolynomial(nodes: readonly Point[], k: number): (x: number) => number {
+  const sorted = validateNodes(nodes, 1)
+  assertPolynomialSize(sorted)
+  const coefficients = dividedDifferenceTable(sorted).map((column) => column[0])
+  const last = Math.min(Math.max(0, Math.floor(k)), coefficients.length - 1)
+  return (x: number) => {
+    let acc = coefficients[last]
+    for (let j = last - 1; j >= 0; j--) acc = coefficients[j] + (x - sorted[j].x) * acc
+    return acc
+  }
+}

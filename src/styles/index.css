@@ -177,6 +177,15 @@
   }
 }
 
+/* The story scroller: wheel and touch scroll it; the control bar shows position instead of a scrollbar. */
+.scroller {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

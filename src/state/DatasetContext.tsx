@@ -3,7 +3,7 @@ import { createSyntheticBundle } from '../data/datasets'
 import { planExperiment, runAccuracyExperiment, type AccuracyExperiment } from '../evaluation/comparison/compareMethods'
 import { DEFAULT_NODE_COUNT } from '../reconstruction/reconstruct'
 import type { InterpolationMethod } from '../types/interpolation'
-import type { DatasetBundle, ReconstructionOutcome } from '../types/measurement'
+import type { DatasetBundle } from '../types/measurement'
 
 const DEFAULT_HOLDOUT = { percent: 20, seed: 11 }
 
@@ -14,13 +14,9 @@ interface DatasetContextValue {
   readonly setMethod: (method: InterpolationMethod) => void
   readonly nodeCount: number
   readonly setNodeCount: (count: number) => void
-  /** reconstructions accepted in chapter 6, keyed by measurement index */
-  readonly reconstructions: ReadonlyMap<number, ReconstructionOutcome>
-  readonly recordReconstructions: (outcomes: readonly ReconstructionOutcome[]) => void
-  readonly clearReconstructions: () => void
   readonly holdout: { percent: number; seed: number }
   readonly setHoldout: (holdout: { percent: number; seed: number }) => void
-  /** chapter 7 experiment, recomputed from live algorithm output whenever inputs change */
+  /** the accuracy experiment (scene 6), recomputed from live algorithm output whenever inputs change */
   readonly experiment: AccuracyExperiment | null
   readonly experimentError: string | null
 }
@@ -31,29 +27,15 @@ export function DatasetProvider({ children, initial }: { children: ReactNode; in
   const [bundle, setBundleState] = useState<DatasetBundle>(() => initial ?? createSyntheticBundle())
   const [method, setMethod] = useState<InterpolationMethod>('spline')
   const [nodeCount, setNodeCount] = useState(DEFAULT_NODE_COUNT)
-  const [reconstructions, setReconstructions] = useState<ReadonlyMap<number, ReconstructionOutcome>>(new Map())
   const [holdout, setHoldout] = useState(DEFAULT_HOLDOUT)
 
-  const setBundle = useCallback((next: DatasetBundle) => {
-    setBundleState(next)
-    setReconstructions(new Map())
-  }, [])
-
-  const recordReconstructions = useCallback((outcomes: readonly ReconstructionOutcome[]) => {
-    setReconstructions((previous) => {
-      const next = new Map(previous)
-      for (const o of outcomes) if (o.ok) next.set(o.index, o)
-      return next
-    })
-  }, [])
-
-  const clearReconstructions = useCallback(() => setReconstructions(new Map()), [])
+  const setBundle = useCallback((next: DatasetBundle) => setBundleState(next), [])
 
   const { experiment, experimentError } = useMemo(() => {
     try {
       const plan = planExperiment(bundle, holdout.percent, holdout.seed)
       if (plan.hiddenPositions.length === 0) {
-        return { experiment: null, experimentError: 'No measurements are hidden, so there is nothing to evaluate. Increase the missing percentage in chapter 4.' }
+        return { experiment: null, experimentError: 'No measurements are hidden, so there is nothing to evaluate. Increase the missing share in scene 3.' }
       }
       return { experiment: runAccuracyExperiment(plan.reference, plan.hiddenPositions, nodeCount), experimentError: null }
     } catch (error) {
@@ -69,15 +51,12 @@ export function DatasetProvider({ children, initial }: { children: ReactNode; in
       setMethod,
       nodeCount,
       setNodeCount,
-      reconstructions,
-      recordReconstructions,
-      clearReconstructions,
       holdout,
       setHoldout,
       experiment,
       experimentError,
     }),
-    [bundle, setBundle, method, nodeCount, reconstructions, recordReconstructions, clearReconstructions, holdout, experiment, experimentError],
+    [bundle, setBundle, method, nodeCount, holdout, experiment, experimentError],
   )
 
   return <DatasetContext.Provider value={value}>{children}</DatasetContext.Provider>

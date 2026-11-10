@@ -12,7 +12,7 @@ export default defineConfig({
         advancedChunks: {
           groups: [
             { name: 'katex', test: /node_modules[\\/]katex/ },
-            { name: 'recharts', test: /node_modules[\\/](recharts|d3-|victory-vendor)/ },
+            { name: 'gsap', test: /node_modules[\\/]gsap/ },
           ],
         },
       },

@@ -84,7 +84,7 @@ reconstruct(observed: ObservedDataset, indices, { method, nodeCount }) → Recon
 `EvaluationError` for an empty set or any non-finite value.
 
 `planExperiment(bundle, holdoutPercent, seed)` builds the reference series (rows with ground
-truth) and the hidden set: the chapter 4 mask for synthetic data; a seeded holdout of interior
+truth) and the hidden set: the scene 3 mask for synthetic data; a seeded holdout of interior
 known rows for CSV data. `runAccuracyExperiment` masks, reconstructs from the observed remainder
 via the same pipeline, then compares with truth. `rankByRmse` orders methods with tie tolerance.
 

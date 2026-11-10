@@ -44,3 +44,17 @@ export function lagrangePolynomial(nodes: readonly Point[]): (x: number) => numb
     return sum
   }
 }
+
+/** The single basis polynomial L_i(x) for plotting how each node contributes. */
+export function lagrangeBasisFunction(nodes: readonly Point[], i: number): (x: number) => number {
+  const sorted = validateNodes(nodes, 2)
+  assertPolynomialSize(sorted)
+  if (i < 0 || i >= sorted.length) throw new RangeError(`Basis index ${i} is out of range.`)
+  return (x: number) => {
+    let basis = 1
+    for (let j = 0; j < sorted.length; j++) {
+      if (j !== i) basis *= (x - sorted[j].x) / (sorted[i].x - sorted[j].x)
+    }
+    return basis
+  }
+}

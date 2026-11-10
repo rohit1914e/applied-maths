@@ -82,11 +82,31 @@ timestamp,ping_ms
 Invalid files are rejected as a whole (the previous dataset stays active) with up to 25 issues
 listed. Files over 5 MB are refused.
 
-For CSV data, chapter 7 cannot score genuinely missing rows; it holds out a seeded share
+For CSV data, scene 6 cannot score genuinely missing rows; it holds out a seeded share
 (default 20 %) of known interior rows instead.
 
 ## Packet simulation — `src/simulation/networkSimulation/simulateProbe.ts`
 
 Four hops (client→router→server→router→client). Each hop delay = propagation (0.9 ms local,
 11.5 ms wide-area) + transmission (0.12 / 0.05 ms) + exponential queuing (mean 0.8 / 3.2 ms).
-Server processing 0.2–0.6 ms. Timeout 1000 ms; "Send ping that times out" forces a lost reply.
+Server processing 0.2–0.6 ms. Timeout 1000 ms.
+
+The opening scene uses a network profile: queuing means are multiplied by a slowly varying load
+(1 + 0.9·(0.5 + 0.5·sin(n/13)) plus occasional bursts), and each reply is lost with probability
+0.06. A lost reply is recorded as a timeout, with no RTT. Seed 2026, so the story opens the same
+way every time.
+
+## Preparation pipeline — `src/data/preparation/preparationPipeline.ts`
+
+Scene 3 animates this function's real output. `buildRawStream` turns the observed dataset back
+into text records in network arrival order (mostly in time order, with local reordering) and
+injects four labelled faults: a non-numeric value, a negative latency, a later duplicate of an
+existing timestamp, and a row with no timestamp. `runPreparationPipeline` then:
+
+1. **Validates** each row with the CSV importer's cell rules. Faulty rows are set aside with a
+   reason; for duplicates the first arrival is kept.
+2. **Sorts** the accepted rows by timestamp.
+3. **Identifies missing** values: empty, NA or timeout cells stay in the series as empty slots.
+
+A unit test checks that the result equals the observed dataset exactly (timestamps, values and
+missing records), so the animation shows the true path of the data into the algorithms.

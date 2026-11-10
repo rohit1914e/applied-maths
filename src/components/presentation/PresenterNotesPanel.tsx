@@ -1,23 +1,23 @@
-import type { ChapterDefinition } from '../../types/presentation'
+import type { SceneDefinition } from '../../types/presentation'
 
 /**
  * Presenter notes. Rendered only outside the stage element (drawer or separate window),
  * so neither fullscreen projection nor a stage screenshot can include them.
  */
 export function PresenterNotesPanel({
-  chapter,
-  step,
+  scene,
+  beat,
   onPopOut,
   onClose,
   inWindow = false,
 }: {
-  chapter: ChapterDefinition
-  step: number
+  scene: SceneDefinition
+  beat: number
   onPopOut?: () => void
   onClose?: () => void
   inWindow?: boolean
 }) {
-  const { notes } = chapter
+  const { notes } = scene
   return (
     <section
       aria-label="Presenter notes"
@@ -27,10 +27,9 @@ export function PresenterNotesPanel({
       <div className="flex flex-col-reverse gap-3">
         <div>
           <p className="text-[14px] font-semibold text-muted">
-            Presenter notes, chapter {chapter.number}
-            {chapter.builds > 0 && `, build ${step} of ${chapter.builds}`}
+            Presenter notes, scene {scene.number}, step {beat + 1} of {scene.beats.length}
           </p>
-          <h2 className="mt-1 font-serif text-[24px] leading-tight">{chapter.title}</h2>
+          <h2 className="mt-1 font-serif text-[24px] leading-tight">{scene.title}</h2>
         </div>
         {!inWindow && (
           <div className="flex shrink-0 justify-end gap-2">
@@ -48,16 +47,14 @@ export function PresenterNotesPanel({
         )}
       </div>
 
-      {chapter.buildLabels.length > 0 && (
-        <ol className="mt-4 space-y-1 text-[14px]">
-          {chapter.buildLabels.map((label, i) => (
-            <li key={label} className={i + 1 <= step ? 'text-charcoal' : 'text-muted'}>
-              <span className="num mr-2">{i + 1 <= step ? '●' : '○'}</span>
-              Space {i + 1}: {label}
-            </li>
-          ))}
-        </ol>
-      )}
+      <ol className="mt-4 space-y-1 text-[14px]" aria-label="Steps in this scene">
+        {scene.beats.map((b, i) => (
+          <li key={b.label} className={i === beat ? 'font-semibold text-crimson' : i < beat ? 'text-charcoal' : 'text-muted'}>
+            <span className="num mr-2">{i <= beat ? '●' : '○'}</span>
+            {b.label}
+          </li>
+        ))}
+      </ol>
 
       <h3 className="mt-5 text-[15px] font-bold text-crimson">What to explain</h3>
       <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-snug">

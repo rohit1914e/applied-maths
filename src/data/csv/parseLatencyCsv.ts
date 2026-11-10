@@ -18,10 +18,16 @@ export type CsvParseResult =
 
 /** Cells that mean "no measurement recorded" rather than a typo. */
 const MISSING_TOKENS = new Set(['', 'na', 'n/a', 'null', 'nan', 'timeout', '-'])
+
+/** True for a latency cell that means "no measurement" (empty, NA, timeout, …). */
+export const isMissingCell = (cell: string) => MISSING_TOKENS.has(cell.trim().toLowerCase())
 export const MIN_KNOWN_ROWS = 4
 const MAX_REPORTED_ERRORS = 25
 
 const NUMBER = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/
+
+/** True for a plain decimal number (no units, no thousands separators). */
+export const isNumericCell = (cell: string) => NUMBER.test(cell.trim())
 
 /**
  * Parses `timestamp,ping_ms` CSV. Every problem is reported with its line number; nothing

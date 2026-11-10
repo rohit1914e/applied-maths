@@ -33,6 +33,10 @@ interface LatencyPlotProps {
   readonly showValues?: boolean
   /** draw the line through reconstructed values as well (the completed series) */
   readonly connectReconstructed?: boolean
+  /** when set, the curve is drawn to this fraction (0–1) instead of animating in */
+  readonly curveReveal?: number
+  /** x position of a scanning guide line */
+  readonly scanX?: number | null
 }
 
 const MARGIN = { top: 28, right: 28, bottom: 64, left: 84 }
@@ -56,6 +60,8 @@ export function LatencyPlot({
   label = 'Latency over time',
   showValues = false,
   connectReconstructed = false,
+  curveReveal,
+  scanX = null,
 }: LatencyPlotProps) {
   const scope = useRef<SVGSVGElement>(null)
   const reduced = useReducedMotion()
@@ -103,7 +109,7 @@ export function LatencyPlot({
   useGSAP(
     () => {
       const path = scope.current?.querySelector<SVGPathElement>('[data-curve]')
-      if (!path || reduced || typeof path.getTotalLength !== 'function') return
+      if (!path || reduced || curveReveal !== undefined || typeof path.getTotalLength !== 'function') return
       const length = path.getTotalLength()
       gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' })
     },
@@ -191,7 +197,13 @@ export function LatencyPlot({
         ))}
 
       {/* interpolant */}
-      {curvePath && <path data-curve d={curvePath} fill="none" stroke="#c18b52" strokeWidth={4} strokeLinecap="round" />}
+      {scanX !== null && <line x1={x(scanX)} x2={x(scanX)} y1={MARGIN.top - 8} y2={baseline} stroke="#c18b52" strokeWidth={2} strokeOpacity={0.8} />}
+      {curvePath &&
+        (curveReveal === undefined ? (
+          <path data-curve d={curvePath} fill="none" stroke="#c18b52" strokeWidth={4} strokeLinecap="round" />
+        ) : (
+          <path d={curvePath} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - curveReveal} fill="none" stroke="#c18b52" strokeWidth={4} strokeLinecap="round" />
+        ))}
 
       {/* reconstructed values */}
       {data

@@ -1,43 +1,53 @@
 import { useEffect } from 'react'
 
 export interface ShortcutHandlers {
-  next: () => void
-  previous: () => void
-  advance: () => void
+  nextBeat: () => void
+  previousBeat: () => void
+  nextScene: () => void
+  previousScene: () => void
+  goto: (sceneIndex: number) => void
   toggleFullscreen: () => void
   toggleNotes: () => void
   togglePause: () => void
+  toggleReducedMotion: () => void
+  faster: () => void
+  slower: () => void
   replay: () => void
   restart: () => void
-  goto: (chapterIndex: number) => void
-  escape: () => void
 }
 
 const TYPING = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 
 /**
- * Presentation keys. Clickers send PageDown/PageUp, so those mirror the arrows.
- * Keys typed into form fields are ignored, and Space on a focused button keeps its
- * normal "press" behaviour.
+ * Presenter keys. Clickers send PageDown/PageUp, so those step beats like Space and the
+ * vertical arrows. Keys typed into form fields are ignored, and Space on a focused button
+ * keeps its normal "press" behaviour.
  */
-export function handleShortcut(event: KeyboardEvent, h: ShortcutHandlers): boolean {
+export function handleShortcut(event: KeyboardEvent, h: ShortcutHandlers, sceneCount: number): boolean {
   if (event.ctrlKey || event.metaKey || event.altKey) return false
   const target = event.target as HTMLElement | null
   if (target && (TYPING.has(target.tagName) || target.isContentEditable)) return false
 
   switch (event.key) {
-    case 'ArrowRight':
-    case 'PageDown':
-      h.next()
-      return true
-    case 'ArrowLeft':
-    case 'PageUp':
-      h.previous()
-      return true
     case ' ':
     case 'Spacebar':
       if (target && (target.tagName === 'BUTTON' || target.tagName === 'A' || target.getAttribute('role') === 'tab')) return false
-      h.advance()
+      if (event.shiftKey) h.previousBeat()
+      else h.nextBeat()
+      return true
+    case 'ArrowDown':
+    case 'PageDown':
+      h.nextBeat()
+      return true
+    case 'ArrowUp':
+    case 'PageUp':
+      h.previousBeat()
+      return true
+    case 'ArrowRight':
+      h.nextScene()
+      return true
+    case 'ArrowLeft':
+      h.previousScene()
       return true
     case 'f':
     case 'F':
@@ -51,6 +61,18 @@ export function handleShortcut(event: KeyboardEvent, h: ShortcutHandlers): boole
     case 'P':
       h.togglePause()
       return true
+    case 'm':
+    case 'M':
+      h.toggleReducedMotion()
+      return true
+    case '+':
+    case '=':
+      h.faster()
+      return true
+    case '-':
+    case '_':
+      h.slower()
+      return true
     case 'r':
     case 'R':
       h.replay()
@@ -58,11 +80,8 @@ export function handleShortcut(event: KeyboardEvent, h: ShortcutHandlers): boole
     case 'Home':
       h.restart()
       return true
-    case 'Escape':
-      h.escape()
-      return false // let the browser exit fullscreen too
     default:
-      if (/^[1-8]$/.test(event.key)) {
+      if (/^[1-9]$/.test(event.key) && Number(event.key) <= sceneCount) {
         h.goto(Number(event.key) - 1)
         return true
       }
@@ -70,10 +89,10 @@ export function handleShortcut(event: KeyboardEvent, h: ShortcutHandlers): boole
   }
 }
 
-export function useKeyboardShortcuts(handlers: ShortcutHandlers, extraWindow?: Window | null) {
+export function useKeyboardShortcuts(handlers: ShortcutHandlers, sceneCount: number, extraWindow?: Window | null) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (handleShortcut(event, handlers)) event.preventDefault()
+      if (handleShortcut(event, handlers, sceneCount)) event.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     extraWindow?.addEventListener('keydown', onKey)
@@ -81,5 +100,5 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers, extraWindow?: W
       window.removeEventListener('keydown', onKey)
       extraWindow?.removeEventListener('keydown', onKey)
     }
-  }, [handlers, extraWindow])
+  }, [handlers, sceneCount, extraWindow])
 }

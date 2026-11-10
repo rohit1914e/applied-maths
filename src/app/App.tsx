@@ -1,15 +1,19 @@
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { PresentationShell } from '../components/presentation/PresentationShell'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { ExperienceShell } from '../experience/ExperienceShell'
+import { MotionProvider } from '../experience/motion'
 import { DatasetProvider } from '../state/DatasetContext'
-import { CHAPTERS } from './chapters'
+import { SCENES } from './scenes'
 
-gsap.registerPlugin(useGSAP)
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 export default function App() {
   return (
-    <DatasetProvider>
-      <PresentationShell chapters={CHAPTERS} />
-    </DatasetProvider>
+    <MotionProvider>
+      <DatasetProvider>
+        <ExperienceShell scenes={SCENES} />
+      </DatasetProvider>
+    </MotionProvider>
   )
 }

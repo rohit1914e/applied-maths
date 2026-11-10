@@ -7,7 +7,7 @@ export const STAGE_HEIGHT = 1080
  * A fixed 1920 × 1080 design canvas, scaled uniformly to fit its container and centred.
  * The composition is identical on a laptop screen and on a 1080p projector.
  */
-export function Stage({ children, tone }: { children: ReactNode; tone: 'light' | 'dark' }) {
+export function Stage({ children }: { children: ReactNode }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [box, setBox] = useState({ scale: 1, left: 0, top: 0 })
 
@@ -30,10 +30,7 @@ export function Stage({ children, tone }: { children: ReactNode; tone: 'light' |
     <div ref={hostRef} className="relative h-full w-full overflow-hidden" data-testid="stage-host">
       <div
         data-testid="stage"
-        data-tone={tone}
-        className={`absolute origin-top-left overflow-hidden shadow-[0_2px_24px_rgba(60,40,30,0.18)] transition-colors duration-500 ${
-          tone === 'dark' ? 'bg-night text-night-ink' : 'bg-ivory text-charcoal'
-        }`}
+        className="absolute origin-top-left overflow-hidden bg-ivory text-charcoal shadow-[0_2px_24px_rgba(60,40,30,0.18)]"
         style={{
           width: STAGE_WIDTH,
           height: STAGE_HEIGHT,

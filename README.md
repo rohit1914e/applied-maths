@@ -1,9 +1,10 @@
 # Network Latency Predictor
 
-**Interpolating missing ping measurements** — an interactive, presenter-controlled presentation
-for a Numerical Methods capstone. Eight 16:9 chapters explain latency, show why ping records go
-missing, and reconstruct them with Lagrange, Newton divided-difference and natural cubic spline
-interpolation, with every intermediate value visible and accuracy measured by artificial masking.
+**Interpolating missing ping measurements** — an interactive scientific story for a Numerical
+Methods capstone. It opens on a live network simulation and scrolls through seven connected
+scenes: why ping records go missing, how raw measurements are prepared, how Lagrange, Newton
+divided-difference and natural cubic spline interpolation are built, how every gap is
+reconstructed, and how accurate the estimates are. Every number comes from the real algorithms.
 
 ```bash
 npm install
@@ -12,7 +13,8 @@ npm run build && npm run preview   # present at http://localhost:4173
 npm run check      # lint, type-check, unit/component tests, Playwright E2E
 ```
 
-Keys: Space next build, → / ← chapter, 1–8 jump, F fullscreen, N notes, P pause, R replay, Home restart.
+Scroll or press Space to move through the story. Keys: Space/↓ next step, ↑ back, → / ← scene, 1–7 jump,
+P pause, +/− speed, M reduced motion, R replay scene, Home restart, N presenter notes, F fullscreen.
 
 Before presenting, put your names in `src/config/credits.ts`.
 
@@ -30,5 +32,5 @@ Before presenting, put your names in `src/config/credits.ts`.
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Running and presenting |
 | [docs/VIVA_QUESTIONS.md](docs/VIVA_QUESTIONS.md) | Likely questions with answers |
 
-Stack: React 19, TypeScript 7, Vite 8, Tailwind CSS 4, GSAP + @gsap/react, Recharts, KaTeX,
+Stack: React 19, TypeScript 7, Vite 8, Tailwind CSS 4, GSAP + ScrollTrigger + @gsap/react, KaTeX,
 PapaParse, Vitest, Testing Library, Playwright.
