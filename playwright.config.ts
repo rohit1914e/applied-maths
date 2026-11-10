@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * E2E runs against the production build served by `vite preview` (`npm run test:e2e`).
  * Set BASE_URL to test a deployed site instead, e.g.
- *   BASE_URL=https://network-latency-predictor-gilt.vercel.app npx playwright test
+ *   BASE_URL=https://applied-maths.vercel.app npx playwright test
  */
 const deployed = process.env.BASE_URL
 

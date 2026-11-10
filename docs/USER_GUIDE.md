@@ -2,7 +2,7 @@
 
 ## Live site
 
-https://network-latency-predictor-gilt.vercel.app (static hosting on Vercel's free plan).
+https://applied-maths.vercel.app (static hosting on Vercel's free plan).
 
 ## Setup
 
