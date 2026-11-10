@@ -36,7 +36,7 @@ export function ConclusionSection() {
         </div>
         <div className="card p-5" data-reveal data-testid="key-findings">
           <h3 className="font-semibold">Key findings</h3>
-          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-muted marker:text-amber">
+          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-muted marker:text-accent">
             {bestMetrics && best && (
               <li>
                 Lowest RMSE: {best}, {fmt(bestMetrics.rmse, 3)} ms.
@@ -53,7 +53,7 @@ export function ConclusionSection() {
         </div>
         <div className="card p-5" data-reveal>
           <h3 className="font-semibold">Limitations</h3>
-          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-muted marker:text-crimson">
+          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-muted marker:text-missing-ink">
             <li>Assumes the hidden value follows its neighbours; a spike behind a timeout is invisible.</li>
             <li>No extrapolation: gaps at the start or end stay empty.</li>
             <li>High-degree polynomials oscillate, so the window is capped at 10 nodes.</li>
@@ -64,7 +64,7 @@ export function ConclusionSection() {
           <h3 className="font-semibold">Technologies</h3>
           <ul className="mt-2 flex flex-wrap gap-1.5">
             {TECH.map((t) => (
-              <li key={t} className="badge bg-paper font-medium text-charcoal">
+              <li key={t} className="badge border border-line bg-canvas font-medium text-ink">
                 {t}
               </li>
             ))}
@@ -78,12 +78,12 @@ export function ConclusionSection() {
 export function Footer() {
   const presenters = CREDITS.presenters.filter(Boolean)
   return (
-    <footer className="border-t border-rule bg-paper">
+    <footer className="border-t border-line bg-surface">
       <div className="wrap flex flex-wrap items-start justify-between gap-6 py-10" data-testid="credits">
         <div className="flex items-center gap-3">
           <LogoMark size={32} />
           <div>
-            <p className="heading-serif text-lg leading-tight">Network Latency Predictor</p>
+            <p className="heading text-base leading-tight">Network Latency Predictor</p>
             <p className="text-sm text-muted">Recovering missing network measurements through numerical interpolation</p>
           </div>
         </div>

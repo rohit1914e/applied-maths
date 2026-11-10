@@ -132,7 +132,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
             </div>
           </fieldset>
           <label className="col-span-2 flex items-center gap-3 text-sm">
-            <input type="checkbox" className="h-4 w-4 accent-[#633f32]" checked={form.irregularSampling} onChange={(e) => setForm((f) => ({ ...f, irregularSampling: e.target.checked }))} />
+            <input type="checkbox" className="h-4 w-4 accent-accent" checked={form.irregularSampling} onChange={(e) => setForm((f) => ({ ...f, irregularSampling: e.target.checked }))} />
             Irregular probe times (uneven spacing)
           </label>
           <div className="col-span-2 mt-1 flex gap-3">
@@ -144,7 +144,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
             </button>
           </div>
           {formErrors.length > 0 && (
-            <ul role="alert" className="col-span-2 space-y-1 text-sm font-semibold text-crimson">
+            <ul role="alert" className="col-span-2 space-y-1 text-sm font-semibold text-missing-ink">
               {formErrors.map((e) => (
                 <li key={e}>{e}</li>
               ))}
@@ -154,7 +154,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
       ) : (
         <div className="mt-5 flex min-h-0 flex-col">
           <p className="text-sm text-muted">
-            Two columns with a header: <code className="num text-charcoal">timestamp,ping_ms</code>. Timestamps in seconds, increasing. Leave a latency cell empty (or write NA or timeout) for a missing measurement.
+            Two columns with a header: <code className="num text-ink">timestamp,ping_ms</code>. Timestamps in seconds, increasing. Leave a latency cell empty (or write NA or timeout) for a missing measurement.
           </p>
           <div className="mt-4 flex gap-3">
             <label htmlFor={fileId} className="btn btn-primary">
@@ -166,12 +166,12 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
             </button>
           </div>
           {csvMessage && (
-            <p className={`mt-4 text-sm font-semibold ${csvErrors.length ? 'text-crimson' : 'text-brown'}`} role="status">
+            <p className={`mt-4 text-sm font-semibold ${csvErrors.length ? 'text-missing-ink' : 'text-success'}`} role="status">
               {csvMessage}
             </p>
           )}
           {csvErrors.length > 0 && (
-            <ul role="alert" className="num mt-2 max-h-[300px] space-y-1 overflow-y-auto text-sm text-crimson" data-testid="csv-errors">
+            <ul role="alert" className="num mt-2 max-h-[300px] space-y-1 overflow-y-auto text-sm text-missing-ink" data-testid="csv-errors">
               {csvErrors.map((e, i) => (
                 <li key={i}>
                   {e.line !== null ? `Line ${e.line}: ` : ''}
@@ -181,7 +181,7 @@ export function DatasetControls({ onApplied }: { onApplied?: () => void }) {
             </ul>
           )}
           {csvWarnings.map((w) => (
-            <p key={w.message} className="mt-2 text-sm text-amber-ink">
+            <p key={w.message} className="mt-2 text-sm text-estimate-ink">
               {w.message}
             </p>
           ))}

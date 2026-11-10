@@ -20,14 +20,17 @@ export function Hero() {
   const bestRmse = experiment?.results.find((r) => r.method === experiment.bestByRmse)?.metrics?.rmse
 
   return (
-    <section id="overview" aria-labelledby="overview-title" className="border-b border-rule">
+    <section id="overview" aria-labelledby="overview-title" className="border-b border-line bg-surface">
       <div className="wrap grid grid-cols-1 [&>*]:min-w-0 items-center gap-10 py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14">
         <div data-reveal>
-          <p className="text-sm font-semibold text-crimson">Numerical Methods capstone</p>
-          <h1 id="overview-title" className="heading-serif mt-3 text-[2.6rem] leading-[1.05] sm:text-[3.25rem] xl:text-[3.75rem]">
-            Network Latency Predictor
+          <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-accent shadow-[var(--shadow-card)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            Numerical Methods capstone
+          </p>
+          <h1 id="overview-title" className="heading mt-5 text-[2.4rem] leading-[1.08] sm:text-[3rem] xl:text-[3.4rem]">
+            Network Latency <span className="text-accent">Predictor</span>
           </h1>
-          <p className="mt-4 font-serif text-[1.35rem] leading-snug text-brown italic md:text-[1.5rem]">Recovering missing network measurements through numerical interpolation</p>
+          <p className="mt-4 text-lg leading-snug font-medium text-ink md:text-xl">Recovering missing network measurements through numerical interpolation</p>
           <p className="mt-5 max-w-xl text-[1.0625rem] leading-relaxed text-muted">
             Ping monitors record round-trip times every second, but some records never arrive. This project rebuilds the missing values with Lagrange, Newton and natural cubic spline interpolation, shows every step of the arithmetic, and measures how accurate the estimates really are.
           </p>
@@ -39,14 +42,14 @@ export function Hero() {
               See the methods
             </a>
           </div>
-          <dl className="mt-9 grid max-w-xl grid-cols-3 gap-4 border-t border-rule pt-5">
+          <dl className="mt-9 grid max-w-xl grid-cols-3 gap-4 border-t border-line pt-5">
             <div>
               <dt className="text-xs text-muted">Measurements</dt>
               <dd className="num mt-1 text-xl">{bundle.observed.measurements.length}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted">Missing records</dt>
-              <dd className="num mt-1 text-xl text-crimson">{bundle.missingIndices.length}</dd>
+              <dd className="num mt-1 text-xl text-missing-ink">{bundle.missingIndices.length}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted">Lowest RMSE</dt>
@@ -59,8 +62,8 @@ export function Hero() {
         <div ref={panel} className="panel-dark p-4 sm:p-6" data-reveal aria-label="Live network">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-white">Live network</p>
-            <p className="flex items-center gap-2 text-xs text-night-muted">
-              <span className={`inline-block h-2 w-2 rounded-full ${inView && !reduced ? 'bg-amber' : 'bg-night-rule'}`} />
+            <p className="flex items-center gap-2 text-xs text-panel-muted">
+              <span className={`inline-block h-2 w-2 rounded-full ${inView && !reduced ? 'bg-success' : 'bg-panel-line'}`} />
               {reduced ? 'Paused for reduced motion' : 'One probe per second'}
             </p>
           </div>

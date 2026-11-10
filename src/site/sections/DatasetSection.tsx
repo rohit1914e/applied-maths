@@ -29,15 +29,15 @@ export function DatasetSection() {
     >
       <div className="grid grid-cols-1 [&>*]:min-w-0 gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
         <div className="card flex min-h-0 flex-col p-0" data-reveal>
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 sm:px-5">
             <p className="font-semibold">{bundle.source.type === 'synthetic' ? `Synthetic, seed ${bundle.source.generator.seed}` : `Imported: ${bundle.source.fileName}`}</p>
             <p className="text-sm text-muted" data-testid="dataset-summary">
-              {ms.length} records, {observed.length} observed, <span className="text-crimson">{bundle.missingIndices.length} missing</span>, {fmt(Math.min(...values), 1)}–{fmt(Math.max(...values), 1)} ms, {regular ? 'regular' : 'irregular'} spacing
+              {ms.length} records, {observed.length} observed, <span className="text-missing-ink">{bundle.missingIndices.length} missing</span>, {fmt(Math.min(...values), 1)}–{fmt(Math.max(...values), 1)} ms, {regular ? 'regular' : 'irregular'} spacing
             </p>
           </div>
           <div className="max-h-[640px] overflow-auto" tabIndex={0} aria-label="Dataset table">
             <table className="w-full text-sm" data-testid="dataset-table">
-              <thead className="sticky top-0 bg-paper text-left text-xs text-muted">
+              <thead className="sticky top-0 bg-canvas text-left text-xs text-muted">
                 <tr>
                   <th className="px-4 py-2 font-semibold sm:px-5">#</th>
                   <th className="px-3 py-2 text-right font-semibold">Timestamp (s)</th>
@@ -47,18 +47,18 @@ export function DatasetSection() {
               </thead>
               <tbody>
                 {ms.map((m) => (
-                  <tr key={m.index} className={`border-t border-rule ${m.status === 'missing' ? 'bg-crimson-soft/45' : ''}`}>
+                  <tr key={m.index} className={`border-t border-line ${m.status === 'missing' ? 'bg-missing-soft' : ''}`}>
                     <td className="num px-4 py-1.5 text-muted sm:px-5">{m.index + 1}</td>
                     <td className="num px-3 py-1.5 text-right">{fmtSeconds(m.timestamp)}</td>
                     <td className="num px-3 py-1.5 text-right">{m.observedPingMs === null ? '—' : fmt(m.observedPingMs, 1)}</td>
                     <td className="px-4 py-1.5 sm:px-5">
                       {m.status === 'missing' ? (
-                        <span className="badge bg-crimson-soft text-crimson">
-                          <span className="h-1.5 w-1.5 rounded-full bg-crimson" /> Missing
+                        <span className="badge bg-missing-soft text-missing-ink">
+                          <span className="h-1.5 w-1.5 rounded-full bg-missing" /> Missing
                         </span>
                       ) : (
-                        <span className="badge bg-paper text-brown">
-                          <span className="h-1.5 w-1.5 rounded-full bg-brown" /> Observed
+                        <span className="badge bg-accent-soft text-accent">
+                          <span className="h-1.5 w-1.5 rounded-full bg-actual" /> Observed
                         </span>
                       )}
                     </td>
@@ -80,12 +80,12 @@ export function DatasetSection() {
             <p className="mt-1 text-sm text-muted">The records are replayed as a raw stream, out of order and with four injected faults, and run through the pipeline.</p>
             <ol className="mt-4 grid grid-cols-1 [&>*]:min-w-0 grid-cols-2 gap-3 sm:grid-cols-4">
               {steps.map((st, i) => (
-                <li key={st.title} className="rounded-lg bg-paper p-3">
+                <li key={st.title} className="rounded-lg bg-canvas p-3">
                   <p className="text-xs text-muted">
-                    <span className="num mr-1 text-crimson">{i + 1}</span>
+                    <span className="num mr-1 font-semibold text-accent">{i + 1}</span>
                     {st.title}
                   </p>
-                  <p className={`num mt-1 text-xl ${st.alert ? 'text-crimson' : ''}`}>{st.value}</p>
+                  <p className={`num mt-1 text-xl ${st.alert ? 'text-missing-ink' : ''}`}>{st.value}</p>
                   <p className="text-xs leading-snug text-muted">{st.text}</p>
                 </li>
               ))}
@@ -93,7 +93,7 @@ export function DatasetSection() {
             <table className="mt-4 w-full text-sm" data-testid="rejected-rows">
               <caption className="pb-1 text-left text-xs font-semibold text-muted">Rejected rows</caption>
               <thead className="text-left text-xs text-muted">
-                <tr className="border-b border-rule">
+                <tr className="border-b border-line">
                   <th className="py-1 font-semibold">Timestamp</th>
                   <th className="py-1 font-semibold">Ping</th>
                   <th className="py-1 font-semibold">Reason</th>
@@ -101,9 +101,9 @@ export function DatasetSection() {
               </thead>
               <tbody>
                 {prep.rejected.map((r) => (
-                  <tr key={r.record.id} className="border-b border-rule last:border-0">
+                  <tr key={r.record.id} className="border-b border-line last:border-0">
                     <td className="num py-1">{r.record.timestamp || '—'}</td>
-                    <td className="num py-1 text-crimson">{r.record.ping || '—'}</td>
+                    <td className="num py-1 text-missing-ink">{r.record.ping || '—'}</td>
                     <td className="py-1 text-muted">{r.reason}</td>
                   </tr>
                 ))}

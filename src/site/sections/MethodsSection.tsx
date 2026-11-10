@@ -11,6 +11,7 @@ import { fmt, fmtSeconds } from '../../utils/format'
 import { segment } from '../../utils/progress'
 import { Section } from '../Section'
 import { buildMethodsModel, interpolableGaps, type MethodsModel } from './methodsModel'
+import { BASIS_COLORS, COLORS } from '../../styles/tokens'
 
 const TABS: { id: InterpolationMethod; label: string; short: string }[] = [
   { id: 'lagrange', label: 'Lagrange', short: 'Lagrange' },
@@ -33,7 +34,6 @@ const ABOUT: Record<InterpolationMethod, { tex: string[]; text: string }> = {
   },
 }
 
-const BASIS_COLOURS = ['#633f32', '#8e252d', '#c18b52', '#5f5751', '#a0522d', '#3a332e', '#b07a3a', '#6b4b3e', '#94564c', '#252525']
 const n4 = (v: number) => fmt(v, 4)
 const signed = (v: number, first: boolean) => (first ? n4(v) : v < 0 ? `- ${n4(-v)}` : `+ ${n4(v)}`)
 
@@ -54,11 +54,12 @@ export function MethodsSection() {
   return (
     <Section
       id="methods"
+      tone="surface"
       title="Three interpolation methods"
       intro="Pick a missing record and a method. The curve is constructed step by step from the actual algorithm, with the equation and every intermediate value beside it."
     >
       {!model ? (
-        <p className="card p-5 text-crimson" role="alert">
+        <p className="card p-5 text-missing-ink" role="alert">
           This dataset has no missing record with measured neighbours on both sides. Generate a dataset with gaps in the dataset section.
         </p>
       ) : (
@@ -110,7 +111,7 @@ export function MethodsSection() {
                 ))}
               </div>
               <p className="text-[0.95rem] leading-relaxed text-muted">{ABOUT[method].text}</p>
-              <div className="mt-4 border-t border-rule pt-4 text-[15px]" data-testid="derivation">
+              <div className="mt-4 border-t border-line pt-4 text-[15px]" data-testid="derivation">
                 <p className="mb-2 text-sm font-semibold">Calculation at t = {fmtSeconds(model.time)} s</p>
                 {method === 'lagrange' && <LagrangeWork r={model.lagrange} s={s} />}
                 {method === 'newton' && <NewtonWork r={model.newton} s={s} />}
@@ -142,10 +143,10 @@ function Estimate({ model, method, visible }: { model: MethodsModel; method: Int
   const value = method === 'lagrange' ? model.lagrange.value : method === 'newton' ? model.newton.value : model.spline.value
   const other = method === 'spline' ? model.lagrange.value : model.spline.value
   return (
-    <div className="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-lg bg-amber-soft px-4 py-3" style={{ visibility: visible ? 'visible' : 'hidden' }} data-testid="method-estimate">
+    <div className="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-lg bg-estimate-soft px-4 py-3" style={{ visibility: visible ? 'visible' : 'hidden' }} data-testid="method-estimate">
       <div>
-        <p className="text-xs text-amber-ink">Estimated latency at t = {fmtSeconds(model.time)} s</p>
-        <p className="num text-[1.75rem] leading-tight text-amber-ink">
+        <p className="text-xs text-estimate-ink">Estimated latency at t = {fmtSeconds(model.time)} s</p>
+        <p className="num text-[1.75rem] leading-tight text-estimate-ink">
           {fmt(value, 2)} <span className="text-sm">ms</span>
         </p>
       </div>
@@ -171,7 +172,7 @@ function ZoomPlot({ model, method, s, onPick }: { model: MethodsModel; method: I
   const curves: { key: string; d: string; reveal: number; colour: string }[] = []
   let estimate: number | null = null
   if (method === 'lagrange') {
-    curves.push({ key: 'P', d: path(model.polyCurve), reveal: segment(s, 0.55, 0.9), colour: '#c18b52' })
+    curves.push({ key: 'P', d: path(model.polyCurve), reveal: segment(s, 0.55, 0.9), colour: COLORS.estimate })
     estimate = model.lagrange.value
   } else if (method === 'newton') {
     const q = segment(s, 0.05, 0.75) * (model.partials.length - 1)
@@ -179,11 +180,11 @@ function ZoomPlot({ model, method, s, onPick }: { model: MethodsModel; method: I
     const f = q - k
     const a = model.partials[Math.max(0, k)]
     const b = model.partials[Math.min(model.partials.length - 1, k + 1)]
-    curves.push({ key: 'N', d: path(a.map((p, i) => ({ x: p.x, y: p.y + (b[i].y - p.y) * f }))), reveal: 1, colour: '#c18b52' })
+    curves.push({ key: 'N', d: path(a.map((p, i) => ({ x: p.x, y: p.y + (b[i].y - p.y) * f }))), reveal: 1, colour: COLORS.estimate })
     estimate = model.newton.value
   } else {
     const n = model.segments.length
-    model.segments.forEach((sg, j) => curves.push({ key: `S${sg.i}`, d: path(sg.points), reveal: segment(s, (j / n) * 0.8, ((j + 1) / n) * 0.8), colour: j % 2 ? '#c18b52' : '#a8743f' }))
+    model.segments.forEach((sg, j) => curves.push({ key: `S${sg.i}`, d: path(sg.points), reveal: segment(s, (j / n) * 0.8, ((j + 1) / n) * 0.8), colour: j % 2 ? COLORS.estimate : COLORS.estimateInk }))
     estimate = model.spline.value
   }
 
@@ -192,41 +193,41 @@ function ZoomPlot({ model, method, s, onPick }: { model: MethodsModel; method: I
       <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} className="block overflow-visible" role="img" aria-label="Measured points near the gap and the interpolating curve" data-testid="method-plot">
         {model.yTicks.map((t) => (
           <g key={t}>
-            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke="#ece5d9" />
-            <text x={m.left - 8} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11.5} fill="#5f5751" className="num">
+            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke={COLORS.grid} />
+            <text x={m.left - 8} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11.5} fill={COLORS.muted} className="num">
               {fmt(t, Number.isInteger(t) ? 0 : 1)}
             </text>
           </g>
         ))}
-        <line x1={m.left} x2={width - m.right} y1={baseline} y2={baseline} stroke="#8f8579" />
+        <line x1={m.left} x2={width - m.right} y1={baseline} y2={baseline} stroke={COLORS.axis} />
         {model.inView.map((mm) => (
-          <text key={`t${mm.index}`} x={x(mm.timestamp)} y={baseline + 18} textAnchor="middle" fontSize={11.5} fill="#5f5751" className="num">
+          <text key={`t${mm.index}`} x={x(mm.timestamp)} y={baseline + 18} textAnchor="middle" fontSize={11.5} fill={COLORS.muted} className="num">
             {fmtSeconds(mm.timestamp)}
           </text>
         ))}
-        <line x1={x(model.time)} x2={x(model.time)} y1={m.top} y2={baseline} stroke="#8e252d" strokeDasharray="4 5" strokeOpacity={0.7} />
+        <line x1={x(model.time)} x2={x(model.time)} y1={m.top} y2={baseline} stroke={COLORS.missing} strokeDasharray="4 5" strokeOpacity={0.7} />
         {curves.map((c) => (
           <path key={c.key} d={c.d} pathLength={1} fill="none" stroke={c.colour} strokeWidth={2.75} strokeLinecap="round" strokeDasharray="1 1" strokeDashoffset={1 - c.reveal} />
         ))}
         {model.inView.map((mm) =>
           mm.status === 'missing' ? (
-            <circle key={mm.index} cx={x(mm.timestamp)} cy={baseline} r={mm.index === model.target ? 7 : 5} fill="#faf8f4" stroke="#8e252d" strokeWidth={2} style={{ cursor: 'pointer' }} onClick={() => onPick(mm.index)} />
+            <circle key={mm.index} cx={x(mm.timestamp)} cy={baseline} r={mm.index === model.target ? 7 : 5} fill={COLORS.surface} stroke={COLORS.missing} strokeWidth={2} style={{ cursor: 'pointer' }} onClick={() => onPick(mm.index)} />
           ) : (
             <circle
               key={mm.index}
               cx={x(mm.timestamp)}
               cy={y(mm.observedPingMs!)}
               r={nodeSet.has(mm.timestamp) && method !== 'spline' ? 7 : 4.5}
-              fill={nodeSet.has(mm.timestamp) && method !== 'spline' ? '#faf8f4' : '#633f32'}
-              stroke="#633f32"
+              fill={nodeSet.has(mm.timestamp) && method !== 'spline' ? COLORS.surface : COLORS.actual}
+              stroke={COLORS.actual}
               strokeWidth={2.5}
             />
           ),
         )}
         {s >= 0.92 && estimate !== null && (
           <g data-testid="estimate-marker">
-            <rect x={x(model.time) - 7} y={y(estimate) - 7} width={14} height={14} transform={`rotate(45 ${x(model.time)} ${y(estimate)})`} fill="#c18b52" stroke="#633f32" strokeWidth={1.5} />
-            <text x={x(model.time) - 14} y={y(estimate) - 12} textAnchor="end" fontSize={13} fill="#7f5426" stroke="#ffffff" strokeWidth={4} paintOrder="stroke" className="num">
+            <rect x={x(model.time) - 7} y={y(estimate) - 7} width={14} height={14} transform={`rotate(45 ${x(model.time)} ${y(estimate)})`} fill={COLORS.estimate} stroke={COLORS.estimateInk} strokeWidth={1.5} />
+            <text x={x(model.time) - 14} y={y(estimate) - 12} textAnchor="end" fontSize={13} fill={COLORS.estimateInk} stroke={COLORS.surface} strokeWidth={4} paintOrder="stroke" className="num">
               {fmt(estimate, 2)} ms
             </text>
           </g>
@@ -246,12 +247,12 @@ function LagrangeWork({ r, s }: { r: LagrangeResult; s: number }) {
             const num = b.factors.map((f) => `(${fmtSeconds(f.numerator)})`).join('')
             const den = b.factors.map((f) => `(${fmtSeconds(f.denominator)})`).join('')
             return (
-              <tr key={b.i} className="border-b border-rule" style={{ visibility: shown ? 'visible' : 'hidden' }}>
+              <tr key={b.i} className="border-b border-line" style={{ visibility: shown ? 'visible' : 'hidden' }}>
                 <td className="py-0.5">
                   <Tex tex={`L_{${b.i}} = \\tfrac{${num}}{${den}} = ${n4(b.basisValue)}`} />
                 </td>
                 <td className="num py-0.5 text-right text-xs whitespace-nowrap text-muted sm:text-sm">
-                  {fmt(b.yi, 1)} × {n4(b.basisValue)} = <span className="text-charcoal">{n4(b.term)}</span>
+                  {fmt(b.yi, 1)} × {n4(b.basisValue)} = <span className="text-ink">{n4(b.term)}</span>
                 </td>
               </tr>
             )
@@ -319,12 +320,12 @@ function BasisPanel({ model, s }: { model: MethodsModel; s: number }) {
   return (
     <div ref={box} className="w-full">
       <svg width={width} height={H} className="block overflow-visible" role="img" aria-label="Lagrange basis polynomials" data-testid="basis-panel">
-        <line x1={44} x2={width - 12} y1={y(0)} y2={y(0)} stroke="#cdbfac" />
-        <line x1={44} x2={width - 12} y1={y(1)} y2={y(1)} stroke="#ece5d9" strokeDasharray="3 5" />
-        <text x={36} y={y(0)} dy="0.35em" textAnchor="end" fontSize={11} fill="#5f5751" className="num">
+        <line x1={44} x2={width - 12} y1={y(0)} y2={y(0)} stroke={COLORS.axis} />
+        <line x1={44} x2={width - 12} y1={y(1)} y2={y(1)} stroke={COLORS.grid} strokeDasharray="3 5" />
+        <text x={36} y={y(0)} dy="0.35em" textAnchor="end" fontSize={11} fill={COLORS.muted} className="num">
           0
         </text>
-        <text x={36} y={y(1)} dy="0.35em" textAnchor="end" fontSize={11} fill="#5f5751" className="num">
+        <text x={36} y={y(1)} dy="0.35em" textAnchor="end" fontSize={11} fill={COLORS.muted} className="num">
           1
         </text>
         {model.basis.map((curve, i) => {
@@ -332,9 +333,9 @@ function BasisPanel({ model, s }: { model: MethodsModel; s: number }) {
           const d = curve.map((p, k) => `${k ? 'L' : 'M'}${x(p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('')
           return (
             <g key={i}>
-              <path d={d} pathLength={1} fill="none" stroke={BASIS_COLOURS[i % BASIS_COLOURS.length]} strokeWidth={2} strokeDasharray="1 1" strokeDashoffset={1 - reveal} />
+              <path d={d} pathLength={1} fill="none" stroke={BASIS_COLORS[i % BASIS_COLORS.length]} strokeWidth={2} strokeDasharray="1 1" strokeDashoffset={1 - reveal} />
               {reveal > 0.95 && (
-                <text x={x(model.nodes[i].x)} y={y(1) - 6} textAnchor="middle" fontSize={11.5} fill={BASIS_COLOURS[i % BASIS_COLOURS.length]} className="num">
+                <text x={x(model.nodes[i].x)} y={y(1) - 6} textAnchor="middle" fontSize={11.5} fill={BASIS_COLORS[i % BASIS_COLORS.length]} className="num">
                   L{i}
                 </text>
               )}
@@ -355,7 +356,7 @@ function DividedDifferences({ r, s }: { r: NewtonResult; s: number }) {
       <table className="num w-full text-xs sm:text-sm" data-testid="divided-differences">
         <caption className="pb-1 text-left font-sans text-xs text-muted">Divided-difference table; the first row holds the coefficients a₀…a{cols - 1}.</caption>
         <thead>
-          <tr className="border-b border-rule text-muted">
+          <tr className="border-b border-line text-muted">
             <th className="py-1 pr-3 text-right font-normal">
               <Tex tex="x_i" />
             </th>
@@ -368,10 +369,10 @@ function DividedDifferences({ r, s }: { r: NewtonResult; s: number }) {
         </thead>
         <tbody>
           {r.nodes.map((nd, i) => (
-            <tr key={i} className="border-b border-rule last:border-0">
+            <tr key={i} className="border-b border-line last:border-0">
               <td className="py-0.5 pr-3 text-right">{fmtSeconds(nd.x)}</td>
               {r.table.map((column, k) => (
-                <td key={k} className={`py-0.5 pr-3 text-right ${i === 0 ? 'font-semibold text-crimson' : ''}`} style={{ visibility: k < shown ? 'visible' : 'hidden' }}>
+                <td key={k} className={`py-0.5 pr-3 text-right ${i === 0 ? 'font-semibold text-accent' : ''}`} style={{ visibility: k < shown ? 'visible' : 'hidden' }}>
                   {i < column.length ? n4(column[i]) : ''}
                 </td>
               ))}
@@ -396,15 +397,15 @@ function SecondDerivatives({ model, s }: { model: MethodsModel; s: number }) {
   return (
     <div ref={box} className="w-full">
       <svg width={width} height={H} className="block overflow-visible" role="img" aria-label="Second derivatives of the spline at the knots in view">
-        <line x1={44} x2={width - 12} y1={mid} y2={mid} stroke="#cdbfac" />
-        <text x={36} y={mid} dy="0.35em" textAnchor="end" fontSize={11} fill="#5f5751">
+        <line x1={44} x2={width - 12} y1={mid} y2={mid} stroke={COLORS.axis} />
+        <text x={36} y={mid} dy="0.35em" textAnchor="end" fontSize={11} fill={COLORS.muted}>
           0
         </text>
         {knots.map((k) => (
           <g key={k.i}>
-            <line x1={x(k.x)} x2={x(k.x)} y1={mid} y2={mid - k.m * scale * reveal} stroke="#8e252d" strokeWidth={2.5} />
-            <circle cx={x(k.x)} cy={mid - k.m * scale * reveal} r={3.5} fill="#8e252d" />
-            <text x={x(k.x)} y={mid - k.m * scale * reveal + (k.m >= 0 ? -8 : 16)} textAnchor="middle" fontSize={11} fill="#5f5751" className="num" opacity={reveal}>
+            <line x1={x(k.x)} x2={x(k.x)} y1={mid} y2={mid - k.m * scale * reveal} stroke={COLORS.accent} strokeWidth={2.5} />
+            <circle cx={x(k.x)} cy={mid - k.m * scale * reveal} r={3.5} fill={COLORS.accent} />
+            <text x={x(k.x)} y={mid - k.m * scale * reveal + (k.m >= 0 ? -8 : 16)} textAnchor="middle" fontSize={11} fill={COLORS.muted} className="num" opacity={reveal}>
               {fmt(k.m, 2)}
             </text>
           </g>

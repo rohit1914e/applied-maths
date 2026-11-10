@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { NAV_LINKS } from './navLinks'
+import { COLORS } from '../styles/tokens'
 
 /** The site mark: a ping trace with one reconstructed value. */
 export function LogoMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#252525" />
-      <polyline points="5,21 9,17 13,18.5" fill="none" stroke="#e9e2d6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <polyline points="19,12 23,14 27,9" fill="none" stroke="#e9e2d6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="15.5" r="2.6" fill="#c18b52" />
+      <rect width="32" height="32" rx="7" fill={COLORS.accent} />
+      <polyline points="5,21 9,17 13,18.5" fill="none" stroke={COLORS.surface} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="19,12 23,14 27,9" fill="none" stroke={COLORS.surface} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="15.5" r="2.8" fill={COLORS.estimate} />
     </svg>
   )
 }
@@ -41,11 +42,11 @@ export function Navbar() {
   }, [open])
 
   return (
-    <header className="sticky top-0 z-50 border-b border-rule bg-ivory/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-line bg-surface/95 backdrop-blur">
       <nav className="wrap flex h-16 items-center justify-between gap-6" aria-label="Main">
         <a href="#overview" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
           <LogoMark />
-          <span className="heading-serif text-[1.15rem] leading-none whitespace-nowrap">Network Latency Predictor</span>
+          <span className="heading text-[0.975rem] leading-none whitespace-nowrap">Network Latency Predictor</span>
         </a>
 
         <ul className="hidden items-center gap-1 lg:flex">
@@ -54,7 +55,7 @@ export function Navbar() {
               <a
                 href={`#${l.id}`}
                 aria-current={active === l.id ? 'true' : undefined}
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${active === l.id ? 'bg-paper text-charcoal' : 'text-muted hover:text-charcoal'}`}
+                className={`relative rounded-md px-3 py-2 text-sm font-medium transition-colors after:absolute after:inset-x-3 after:-bottom-[14px] after:h-0.5 after:rounded-full after:transition-colors ${active === l.id ? 'text-accent after:bg-accent' : 'text-muted after:bg-transparent hover:text-ink'}`}
               >
                 {l.label}
               </a>
@@ -77,10 +78,10 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <ul id="mobile-nav" className="wrap grid gap-1 border-t border-rule pt-2 pb-4 lg:hidden">
+        <ul id="mobile-nav" className="wrap grid gap-1 border-t border-line bg-surface pt-2 pb-4 lg:hidden">
           {NAV_LINKS.map((l) => (
             <li key={l.id}>
-              <a href={`#${l.id}`} onClick={() => setOpen(false)} className={`block rounded-md px-3 py-2.5 text-[0.95rem] font-medium ${active === l.id ? 'bg-paper' : ''}`}>
+              <a href={`#${l.id}`} onClick={() => setOpen(false)} className={`block rounded-md px-3 py-2.5 text-[0.95rem] font-medium ${active === l.id ? 'bg-accent-soft text-accent' : 'text-ink'}`}>
                 {l.label}
               </a>
             </li>

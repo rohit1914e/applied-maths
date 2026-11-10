@@ -1,6 +1,6 @@
 # Test Report
 
-Run on 2026-11-10 after the website redesign. Windows 11, Node 24.13.0, Chromium (Playwright
+Run on 2026-11-10 after the website redesign and the light technology restyle. Windows 11, Node 24.13.0, Chromium (Playwright
 1.65, headless shell 1254). Every result below comes from running the commands; nothing is
 skipped or marked `.only`/`.skip`.
 
@@ -92,6 +92,12 @@ Every section was screenshotted at 1920, 1366, 1024 and 390 px and reviewed. Fix
 their single-column container on mobile (384 px overflow), empty space under stretched cards, chart
 legend overlapping axis labels, a "0.0" axis tick, an uncomputed claim in the key findings (replaced
 by the measured largest error), truncated method tabs on phones.
+
+## Restyle check
+
+After replacing the palette, a search confirmed no colour literals remain in any component
+(all colours come from tokens), and every section was re-screenshotted at 1920, 1366, 1024 and
+390 px with no horizontal overflow and no console errors.
 
 ## Known gaps
 

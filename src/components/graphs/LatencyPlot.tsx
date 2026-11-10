@@ -7,6 +7,7 @@ import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useElementWidth } from '../../hooks/useViewport'
 import { fmt, fmtSeconds } from '../../utils/format'
 import { linearScale, niceTicks } from './scale'
+import { COLORS } from '../../styles/tokens'
 
 export interface PlotMeasurement {
   readonly index: number
@@ -28,7 +29,7 @@ interface LatencyPlotProps {
   readonly nodes?: readonly Point[]
   readonly selectedIndex?: number | null
   readonly onSelectMissing?: (index: number) => void
-  /** observed points drawn in crimson (values that are about to disappear) */
+  /** observed points drawn in red (values that are about to disappear) */
   readonly highlight?: ReadonlySet<number>
   /** 0–1: highlighted points fade and drop away (a measurement being lost) */
   readonly highlightFade?: number
@@ -45,8 +46,8 @@ interface LatencyPlotProps {
 const M = { top: 14, right: 14, bottom: 34, left: 46 }
 
 /**
- * The latency chart used across the site. Observed points are brown, missing records are
- * crimson rings on the time axis, reconstructed values are amber diamonds. It measures its
+ * The latency chart used across the site. Measured points are blue, missing records are
+ * red rings on the time axis, reconstructed values are amber diamonds. It measures its
  * container, so text stays the same size at every screen width. Hover shows the value.
  */
 export function LatencyPlot({
@@ -148,26 +149,26 @@ export function LatencyPlot({
       >
         {yTicks.map((t) => (
           <g key={`y${t}`}>
-            <line x1={M.left} x2={width - M.right} y1={y(t)} y2={y(t)} stroke="#ece5d9" />
-            <text x={M.left - 8} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11.5} fill="#5f5751" className="num">
+            <line x1={M.left} x2={width - M.right} y1={y(t)} y2={y(t)} stroke={COLORS.grid} />
+            <text x={M.left - 8} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11.5} fill={COLORS.muted} className="num">
               {fmt(t, Number.isInteger(t) ? 0 : 1)}
             </text>
           </g>
         ))}
-        <line x1={M.left} x2={width - M.right} y1={baseline} y2={baseline} stroke="#8f8579" />
+        <line x1={M.left} x2={width - M.right} y1={baseline} y2={baseline} stroke={COLORS.axis} />
         {xTicks.map((t) => (
-          <text key={`x${t}`} x={x(t)} y={baseline + 18} textAnchor="middle" fontSize={11.5} fill="#5f5751" className="num">
+          <text key={`x${t}`} x={x(t)} y={baseline + 18} textAnchor="middle" fontSize={11.5} fill={COLORS.muted} className="num">
             {fmtSeconds(t)}
           </text>
         ))}
-        <text x={width - M.right} y={baseline + 32} textAnchor="end" fontSize={11} fill="#8f8579">
+        <text x={width - M.right} y={baseline + 32} textAnchor="end" fontSize={11} fill={COLORS.axis}>
           time (s)
         </text>
-        <text x={M.left - 8} y={M.top - 4} textAnchor="end" fontSize={11} fill="#8f8579">
+        <text x={M.left - 8} y={M.top - 4} textAnchor="end" fontSize={11} fill={COLORS.axis}>
           ms
         </text>
 
-        {scanX !== null && <line x1={x(scanX)} x2={x(scanX)} y1={M.top} y2={baseline} stroke="#c18b52" strokeWidth={1.5} />}
+        {scanX !== null && <line x1={x(scanX)} x2={x(scanX)} y1={M.top} y2={baseline} stroke={COLORS.estimate} strokeWidth={1.5} />}
 
         {visible
           .filter((m) => m.status !== 'observed')
@@ -180,14 +181,14 @@ export function LatencyPlot({
                 onClick={onSelectMissing ? () => onSelectMissing(m.index) : undefined}
                 style={{ cursor: onSelectMissing ? 'pointer' : 'default' }}
               >
-                <line x1={x(m.x)} x2={x(m.x)} y1={M.top} y2={baseline} stroke="#8e252d" strokeOpacity={selected ? 0.8 : 0.22} strokeDasharray="4 5" />
-                <circle cx={x(m.x)} cy={baseline} r={selected ? 6.5 : 5} fill="#faf8f4" stroke="#8e252d" strokeWidth={2} />
+                <line x1={x(m.x)} x2={x(m.x)} y1={M.top} y2={baseline} stroke={COLORS.missing} strokeOpacity={selected ? 0.8 : 0.22} strokeDasharray="4 5" />
+                <circle cx={x(m.x)} cy={baseline} r={selected ? 6.5 : 5} fill={COLORS.surface} stroke={COLORS.missing} strokeWidth={2} />
                 {onSelectMissing && <rect x={x(m.x) - 10} y={M.top} width={20} height={baseline - M.top + 10} fill="transparent" />}
               </g>
             )
           })}
 
-        <path d={linePath} fill="none" stroke="#633f32" strokeOpacity={0.7} strokeWidth={1.75} strokeLinejoin="round" />
+        <path d={linePath} fill="none" stroke={COLORS.actual} strokeOpacity={0.55} strokeWidth={1.75} strokeLinejoin="round" />
         {visible
           .filter((m) => m.status === 'observed' && m.y !== null)
           .map((m) => {
@@ -201,8 +202,8 @@ export function LatencyPlot({
                 cy={y(m.y!) + (hot ? 28 * highlightFade : 0)}
                 opacity={hot ? 1 - highlightFade : 1}
                 r={isNode ? r + 2.5 : hot ? r + 1 : r}
-                fill={isNode ? '#faf8f4' : hot ? '#8e252d' : '#633f32'}
-                stroke={isNode ? '#633f32' : 'none'}
+                fill={isNode ? COLORS.surface : hot ? COLORS.missing : COLORS.actual}
+                stroke={isNode ? COLORS.actual : 'none'}
                 strokeWidth={isNode ? 2.5 : 0}
               />
             )
@@ -210,9 +211,9 @@ export function LatencyPlot({
 
         {curvePath &&
           (curveReveal === undefined ? (
-            <path data-curve="animated" d={curvePath} fill="none" stroke="#c18b52" strokeWidth={2.75} strokeLinecap="round" />
+            <path data-curve="animated" d={curvePath} fill="none" stroke={COLORS.estimate} strokeWidth={2.75} strokeLinecap="round" />
           ) : (
-            <path d={curvePath} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - curveReveal} fill="none" stroke="#c18b52" strokeWidth={2.75} strokeLinecap="round" />
+            <path d={curvePath} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - curveReveal} fill="none" stroke={COLORS.estimate} strokeWidth={2.75} strokeLinecap="round" />
           ))}
 
         {visible
@@ -226,26 +227,26 @@ export function LatencyPlot({
               width={(r + 1.5) * 2}
               height={(r + 1.5) * 2}
               transform={`rotate(45 ${x(m.x)} ${y(m.y!)})`}
-              fill="#c18b52"
-              stroke="#633f32"
+              fill={COLORS.estimate}
+              stroke={COLORS.estimateInk}
               strokeWidth={1.25}
             />
           ))}
 
-        {hovered && <line x1={x(hovered.x)} x2={x(hovered.x)} y1={M.top} y2={baseline} stroke="#252525" strokeOpacity={0.25} />}
+        {hovered && <line x1={x(hovered.x)} x2={x(hovered.x)} y1={M.top} y2={baseline} stroke={COLORS.ink} strokeOpacity={0.25} />}
       </svg>
 
       {hovered && (
         <div
-          className="pointer-events-none absolute z-10 rounded-md border border-rule bg-white px-2.5 py-1.5 text-xs shadow-md"
+          className="pointer-events-none absolute z-10 rounded-md border border-line bg-white px-2.5 py-1.5 text-xs shadow-md"
           style={{ left: Math.min(width - 150, Math.max(0, x(hovered.x) + 10)), top: 6 }}
         >
           <span className="num">t = {fmtSeconds(hovered.x)} s</span>
           <br />
           {hovered.status === 'missing' ? (
-            <span className="font-semibold text-crimson">missing</span>
+            <span className="font-semibold text-missing-ink">missing</span>
           ) : (
-            <span className={`num font-semibold ${hovered.status === 'reconstructed' ? 'text-amber-ink' : ''}`}>
+            <span className={`num font-semibold ${hovered.status === 'reconstructed' ? 'text-estimate-ink' : ''}`}>
               {fmt(hovered.y!, 2)} ms{hovered.status === 'reconstructed' ? ' (estimate)' : ''}
             </span>
           )}

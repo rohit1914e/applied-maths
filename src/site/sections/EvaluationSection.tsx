@@ -8,8 +8,8 @@ import type { AccuracyExperiment, MethodEvaluation } from '../../evaluation/comp
 import { METHOD_LABELS, METHOD_SHORT_LABELS, METHODS, type InterpolationMethod } from '../../types/interpolation'
 import { fmt, fmtSeconds } from '../../utils/format'
 import { Section } from '../Section'
+import { COLORS, METHOD_COLORS } from '../../styles/tokens'
 
-const COLOURS: Record<InterpolationMethod, string> = { lagrange: '#633f32', newton: '#c18b52', spline: '#8e252d' }
 const METRICS = [
   { key: 'mae', label: 'MAE', tex: '\\mathrm{MAE} = \\frac{1}{n}\\sum_{i=1}^{n} |y_i - \\hat y_i|', text: 'The average size of an error, in milliseconds. Every miss counts in proportion to its size.' },
   { key: 'rmse', label: 'RMSE', tex: '\\mathrm{RMSE} = \\sqrt{\\frac{1}{n}\\sum_{i=1}^{n} (y_i - \\hat y_i)^2}', text: 'Squares errors before averaging, so large misses weigh more. Always at least the MAE; a big gap means a few large errors.' },
@@ -23,6 +23,7 @@ export function EvaluationSection() {
   return (
     <Section
       id="evaluation"
+      tone="surface"
       title="How accurate are the estimates?"
       intro="A truly missing value cannot be checked, so we hide values we do know, reconstruct them from the rest, and compare. Every number below is recomputed from the algorithms whenever the data or settings change."
       aside={
@@ -41,7 +42,7 @@ export function EvaluationSection() {
       }
     >
       {!experiment ? (
-        <p className="card p-5 text-crimson" role="alert">
+        <p className="card p-5 text-missing-ink" role="alert">
           {experimentError}
         </p>
       ) : (
@@ -71,13 +72,13 @@ function Results({ experiment, synthetic }: { experiment: AccuracyExperiment; sy
 
       <div className="mt-4 grid grid-cols-1 [&>*]:min-w-0 gap-4 md:grid-cols-3" data-reveal data-testid="method-metrics">
         {experiment.results.map((r) => (
-          <div key={r.method} className={`card p-4 ${best.has(r.method) ? 'border-amber ring-1 ring-amber' : ''}`} data-testid={`metrics-${r.method}`}>
+          <div key={r.method} className={`card p-4 ${best.has(r.method) ? 'border-accent ring-1 ring-accent' : ''}`} data-testid={`metrics-${r.method}`}>
             <div className="flex items-center justify-between gap-2">
               <p className="flex items-center gap-2 font-semibold">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: COLOURS[r.method] }} />
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: METHOD_COLORS[r.method] }} />
                 {METHOD_LABELS[r.method]}
               </p>
-              {best.has(r.method) && <span className="badge bg-amber-soft text-amber-ink">Lowest RMSE</span>}
+              {best.has(r.method) && <span className="badge bg-accent-soft text-accent">Lowest RMSE</span>}
             </div>
             {r.metrics ? (
               <dl className="mt-3 grid grid-cols-3 gap-2">
@@ -89,9 +90,9 @@ function Results({ experiment, synthetic }: { experiment: AccuracyExperiment; sy
                 ))}
               </dl>
             ) : (
-              <p className="mt-3 text-sm text-crimson">No estimates could be made.</p>
+              <p className="mt-3 text-sm text-missing-ink">No estimates could be made.</p>
             )}
-            {r.failures > 0 && <p className="mt-1 text-xs text-crimson">{r.failures} value(s) not interpolable</p>}
+            {r.failures > 0 && <p className="mt-1 text-xs text-missing-ink">{r.failures} value(s) not interpolable</p>}
           </div>
         ))}
       </div>
@@ -113,7 +114,7 @@ function Results({ experiment, synthetic }: { experiment: AccuracyExperiment; sy
             </div>
           </div>
           <ErrorPlot experiment={experiment} result={result} />
-          <p className="mt-1 text-xs text-muted">Ring: true value. Diamond: estimate. Crimson line: the error.</p>
+          <p className="mt-1 text-xs text-muted">Ring: true value. Diamond: estimate. Red line: the error.</p>
         </div>
       </div>
 
@@ -129,7 +130,7 @@ function Results({ experiment, synthetic }: { experiment: AccuracyExperiment; sy
         ))}
       </div>
 
-      <div className="mt-5 rounded-xl border-l-4 border-amber bg-white p-4" data-reveal data-testid="interpretation">
+      <div className="card mt-5 border-l-4 border-l-accent p-4" data-reveal data-testid="interpretation">
         <p>
           On this dataset the lowest RMSE belongs to <strong>{bestNames}</strong>
           {bestMetrics && ` (${fmt(bestMetrics.rmse, 3)} ms over ${bestMetrics.n} values)`}.
@@ -156,8 +157,8 @@ function GroupedBars({ results, grow }: { results: readonly MethodEvaluation[]; 
       <svg width={width} height={H} className="block" role="img" aria-label="MAE, RMSE and maximum error for each method" data-testid="comparison-bars">
         {ticks.map((t) => (
           <g key={t}>
-            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke="#ece5d9" />
-            <text x={m.left - 6} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11} fill="#5f5751" className="num">
+            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke={COLORS.grid} />
+            <text x={m.left - 6} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11} fill={COLORS.muted} className="num">
               {fmt(t, Number.isInteger(t) ? 0 : 1)}
             </text>
           </g>
@@ -171,14 +172,14 @@ function GroupedBars({ results, grow }: { results: readonly MethodEvaluation[]; 
                 const h = (y(0) - y(v)) * grow
                 return (
                   <g key={r.method}>
-                    <rect x={gx + ri * barW + 2} y={y(0) - h} width={barW - 4} height={h} rx={3} fill={COLOURS[r.method]} />
-                    <text x={gx + ri * barW + barW / 2} y={y(0) - h - 5} textAnchor="middle" fontSize={10.5} fill="#252525" className="num" opacity={grow}>
+                    <rect x={gx + ri * barW + 2} y={y(0) - h} width={barW - 4} height={h} rx={3} fill={METHOD_COLORS[r.method]} />
+                    <text x={gx + ri * barW + barW / 2} y={y(0) - h - 5} textAnchor="middle" fontSize={10.5} fill={COLORS.ink} className="num" opacity={grow}>
                       {fmt(v, 2)}
                     </text>
                   </g>
                 )
               })}
-              <text x={m.left + gi * groupW + groupW / 2} y={H - m.bottom + 18} textAnchor="middle" fontSize={12} fontWeight={600} fill="#252525">
+              <text x={m.left + gi * groupW + groupW / 2} y={H - m.bottom + 18} textAnchor="middle" fontSize={12} fontWeight={600} fill={COLORS.ink}>
                 {metric.label}
               </text>
             </g>
@@ -186,8 +187,8 @@ function GroupedBars({ results, grow }: { results: readonly MethodEvaluation[]; 
         })}
         {results.map((r, i) => (
           <g key={r.method} transform={`translate(${m.left + i * 120} ${H - 6})`}>
-            <rect width={10} height={10} y={-9} rx={2} fill={COLOURS[r.method]} />
-            <text x={15} fontSize={11.5} fill="#5f5751">
+            <rect width={10} height={10} y={-9} rx={2} fill={METHOD_COLORS[r.method]} />
+            <text x={15} fontSize={11.5} fill={COLORS.muted}>
               {METHOD_SHORT_LABELS[r.method]}
             </text>
           </g>
@@ -218,24 +219,24 @@ function ErrorPlot({ experiment, result }: { experiment: AccuracyExperiment; res
       <svg width={width} height={H} className="block" role="img" aria-label="Hidden true values compared with their estimates" data-testid="error-plot">
         {geo.yTicks.map((t) => (
           <g key={t}>
-            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke="#ece5d9" />
-            <text x={m.left - 6} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11} fill="#5f5751" className="num">
+            <line x1={m.left} x2={width - m.right} y1={y(t)} y2={y(t)} stroke={COLORS.grid} />
+            <text x={m.left - 6} y={y(t)} dy="0.35em" textAnchor="end" fontSize={11} fill={COLORS.muted} className="num">
               {fmt(t, 0)}
             </text>
           </g>
         ))}
         {geo.xTicks.map((t) => (
-          <text key={t} x={x(t)} y={H - m.bottom + 18} textAnchor="middle" fontSize={11} fill="#5f5751" className="num">
+          <text key={t} x={x(t)} y={H - m.bottom + 18} textAnchor="middle" fontSize={11} fill={COLORS.muted} className="num">
             {fmtSeconds(t)}
           </text>
         ))}
-        {reference.values.map((v, pos) => (hidden.has(pos) ? null : <circle key={pos} cx={x(reference.timestamps[pos])} cy={y(v)} r={2.2} fill="#633f32" opacity={0.45} />))}
+        {reference.values.map((v, pos) => (hidden.has(pos) ? null : <circle key={pos} cx={x(reference.timestamps[pos])} cy={y(v)} r={2.2} fill={COLORS.actual} opacity={0.45} />))}
         {result.rows.map((r) => (
           <g key={r.sourceIndex} data-testid="error-pair">
-            {r.estimate !== null && <line x1={x(r.timestamp)} x2={x(r.timestamp)} y1={y(r.actual)} y2={y(r.estimate)} stroke="#8e252d" strokeWidth={2} />}
-            <circle cx={x(r.timestamp)} cy={y(r.actual)} r={5.5} fill="none" stroke="#252525" strokeWidth={1.75} />
+            {r.estimate !== null && <line x1={x(r.timestamp)} x2={x(r.timestamp)} y1={y(r.actual)} y2={y(r.estimate)} stroke={COLORS.missing} strokeWidth={2} />}
+            <circle cx={x(r.timestamp)} cy={y(r.actual)} r={5.5} fill="none" stroke={COLORS.ink} strokeWidth={1.75} />
             {r.estimate !== null && (
-              <rect x={x(r.timestamp) - 4.5} y={y(r.estimate) - 4.5} width={9} height={9} transform={`rotate(45 ${x(r.timestamp)} ${y(r.estimate)})`} fill="#c18b52" stroke="#633f32" strokeWidth={1} />
+              <rect x={x(r.timestamp) - 4.5} y={y(r.estimate) - 4.5} width={9} height={9} transform={`rotate(45 ${x(r.timestamp)} ${y(r.estimate)})`} fill={COLORS.estimate} stroke={COLORS.estimateInk} strokeWidth={1} />
             )}
           </g>
         ))}

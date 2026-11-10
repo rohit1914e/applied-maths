@@ -29,7 +29,7 @@ test('opens as a website: navbar, hero, live network, no presentation chrome', a
   for (const name of ['Overview', 'Network Simulation', 'Dataset', 'Methods', 'Reconstruction', 'Evaluation']) await expect(nav.getByRole('link', { name })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Explore the simulation' })).toBeVisible()
   // packets move in the hero
-  const dots = () => page.locator('[data-testid="live-network"]').first().locator('circle[fill="#c18b52"]').evaluateAll((els) => els.map((e) => `${e.getAttribute('cx')}:${e.getAttribute('opacity')}`).join('|'))
+  const dots = () => page.locator('[data-testid="live-network"]').first().locator('circle[data-packet="request"]').evaluateAll((els) => els.map((e) => `${e.getAttribute('cx')}:${e.getAttribute('opacity')}`).join('|'))
   const a = await dots()
   await page.waitForTimeout(400)
   expect(await dots()).not.toBe(a)

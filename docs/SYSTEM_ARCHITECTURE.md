@@ -89,6 +89,30 @@ dataset generator and CSV import, method tabs, missing-point and node-count sele
 buttons, original/reconstructed toggle, gap and table selection, evaluation method toggle, CSV
 holdout, chart hover tooltips.
 
+## Design system
+
+All colours are tokens. Utility classes come from the `@theme` block in `src/styles/index.css`;
+SVG charts use the same values from `src/styles/tokens.ts`. Components contain no colour
+literals (checked with a search for hex values).
+
+| Role | Token | Value |
+| --- | --- | --- |
+| Page / alternate sections, cards | `canvas` / `surface` | #F8FAFC / #FFFFFF |
+| Text / secondary text | `ink` / `muted` | #111827 / #64748B |
+| Accent, hover, tint | `accent`, `accent-hover`, `accent-soft` | #2563EB, #1D4ED8, #EFF6FF |
+| Borders and grid | `line` / `line-strong` | #E2E8F0 / #CBD5E1 |
+| Measured values | `actual` | #2563EB |
+| Interpolated values (marks / text) | `estimate` / `estimate-ink` | #F59E0B / #B45309 |
+| Missing values (marks / text) | `missing` / `missing-ink` | #EF4444 / #DC2626 |
+| Successful / failed packets | `success` / `failure` | #16A34A / #DC2626 |
+| Dark visualisation panels | `panel`, `panel-2`, `panel-ink`, `panel-muted`, `panel-accent` | #0F172A, #1E293B, #F8FAFC, #94A3B8, #38BDF8 |
+
+Text-coloured variants (`estimate-ink`, `missing-ink`) exist because amber and light red are too
+pale for text on white; marks use the bright values. Typography is Inter (headings 650 weight,
+tight tracking; body 16 px) with JetBrains Mono for every number. Cards use a 10 px radius, a 1 px
+border and a soft shadow; segmented controls show the active option as a white chip with a blue
+label; the navigation marks the current section with a blue underline.
+
 ## Rendering decisions
 
 * Everything is SVG; element counts stay in the hundreds, so Canvas was not needed. Measured about
@@ -104,6 +128,6 @@ holdout, chart hover tooltips.
 | gsap, @gsap/react (incl. ScrollTrigger) | Scroll reveals, construction tweens, cleanup via `useGSAP` | GSAP standard licence (free, including commercial use) |
 | katex | Equation typesetting | MIT |
 | papaparse | Robust CSV tokenising | MIT |
-| @fontsource-variable/* | Newsreader, Public Sans, JetBrains Mono, offline | OFL-1.1 |
+| @fontsource-variable/* | Inter and JetBrains Mono, bundled for offline use | OFL-1.1 |
 | tailwindcss | Utility styling with design tokens | MIT |
 | vitest, @testing-library/*, jsdom, @playwright/test | Testing | MIT / Apache-2.0 |

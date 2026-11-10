@@ -30,4 +30,5 @@ Add your names in `src/config/credits.ts` to show them in the footer.
 | [docs/VIVA_QUESTIONS.md](docs/VIVA_QUESTIONS.md) | Likely questions with answers |
 
 Stack: React 19, TypeScript 7, Vite 8, Tailwind CSS 4, GSAP + ScrollTrigger + @gsap/react, KaTeX,
-PapaParse, Vitest, Testing Library, Playwright.
+PapaParse, Vitest, Testing Library, Playwright. Design tokens live in `src/styles/index.css` and
+`src/styles/tokens.ts`; typography is Inter with JetBrains Mono for numbers.

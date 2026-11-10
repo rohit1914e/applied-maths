@@ -73,6 +73,7 @@ export function MissingDataSection() {
   return (
     <Section
       id="missing-data"
+      tone="surface"
       title="When measurements disappear"
       intro="A missing record is a time slot with no value. The timestamp is there; the round-trip time is not. Toggle between the complete series and what the monitor actually stored."
       aside={
@@ -94,15 +95,15 @@ export function MissingDataSection() {
         <div ref={chart} className="card p-4 sm:p-5" data-reveal>
           <div className="mb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-brown" /> recorded
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-actual" /> recorded
             </span>
             {view === 'complete' && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-crimson" /> will be lost
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-missing" /> will be lost
               </span>
             )}
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-crimson" /> missing record
+              <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-missing" /> missing record
             </span>
           </div>
           <LatencyPlot
@@ -111,7 +112,7 @@ export function MissingDataSection() {
             drawn={build.s}
             highlight={missing}
             highlightFade={view === 'incomplete' ? lose.s : 0}
-            label={view === 'complete' ? 'Complete latency series, with the measurements that will be lost in crimson' : 'Incomplete latency series with missing records'}
+            label={view === 'complete' ? 'Complete latency series, with the measurements that will be lost in red' : 'Incomplete latency series with missing records'}
           />
           {!synthetic && view === 'complete' && (
             <p className="mt-2 text-xs text-muted">Imported data: rows that were empty in the file never had a value, so they stay missing in both views.</p>
@@ -136,7 +137,7 @@ export function MissingDataSection() {
 
       <div className="mt-6 grid grid-cols-1 [&>*]:min-w-0 gap-4 md:grid-cols-3" data-reveal>
         {CAUSES.map(([title, text]) => (
-          <div key={title} className="border-l-2 border-crimson pl-4">
+          <div key={title} className="border-l-2 border-missing pl-4">
             <p className="font-semibold">{title}</p>
             <p className="mt-0.5 text-sm text-muted">{text}</p>
           </div>
@@ -150,7 +151,7 @@ export function MissingDataSection() {
 function Fact({ value, text }: { value: string; text: string }) {
   return (
     <div className="card p-4">
-      <p className="num text-[1.6rem] leading-none text-crimson">{value}</p>
+      <p className="num text-[1.6rem] leading-none text-missing-ink">{value}</p>
       <p className="mt-2 text-sm text-muted">{text}</p>
     </div>
   )

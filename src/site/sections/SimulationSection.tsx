@@ -28,14 +28,13 @@ export function SimulationSection() {
     <Section
       id="simulation"
       title="Network simulation"
-      tone="paper"
       intro="Each probe is an echo request that crosses the router to a server and comes back. The round-trip time is what a monitor records. When the reply does not return within the timeout, nothing is recorded at all."
     >
       <div className="grid grid-cols-1 [&>*]:min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div ref={panel} className="panel-dark p-4 sm:p-6" data-reveal>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-white">Client → router → server</p>
-            <p className="text-xs text-night-muted" role="status" data-testid="sim-status">
+            <p className="text-xs text-panel-muted" role="status" data-testid="sim-status">
               {paused ? 'Paused' : inView ? `Running at ${speed}×` : 'Paused while off-screen'}
             </p>
           </div>
@@ -44,14 +43,14 @@ export function SimulationSection() {
           </div>
           <div className="mt-4 flex items-baseline justify-between">
             <p className="text-sm font-semibold text-white">Round-trip time, last {records.length} probes</p>
-            <p className="num text-xs text-night-muted" data-testid="probe-counter">
+            <p className="num text-xs text-panel-muted" data-testid="probe-counter">
               probe #{stats.lastSequence}
             </p>
           </div>
           <div className="mt-2">
             <LiveTrace records={records} height={210} />
           </div>
-          <p className="mt-2 text-xs text-night-muted">Newest on the right. Crimson rings are probes that timed out after {PROBE_TIMEOUT_MS} ms and left no value.</p>
+          <p className="mt-2 text-xs text-panel-muted">Newest on the right. Red rings are probes that timed out after {PROBE_TIMEOUT_MS} ms and left no value.</p>
         </div>
 
         <div className="flex flex-col gap-4" data-reveal>
@@ -74,9 +73,9 @@ export function SimulationSection() {
               ))}
             </div>
             <label className="field-label mt-4 flex items-center justify-between" htmlFor="loss">
-              Lost replies <span className="num text-charcoal">{loss} %</span>
+              Lost replies <span className="num text-ink">{loss} %</span>
             </label>
-            <input id="loss" type="range" min={0} max={25} step={1} value={loss} onChange={(e) => setLoss(Number(e.target.value))} className="mt-2 w-full accent-[#8e252d]" />
+            <input id="loss" type="range" min={0} max={25} step={1} value={loss} onChange={(e) => setLoss(Number(e.target.value))} className="mt-2 w-full accent-accent" />
             {reduced && paused && <p className="mt-3 text-xs text-muted">Paused because your system prefers reduced motion. Resume to run it anyway.</p>}
           </div>
 
@@ -93,18 +92,18 @@ export function SimulationSection() {
               <table className="num mt-2 w-full text-sm">
                 <tbody>
                   {lastOk.hops.map((h, i) => (
-                    <tr key={i} className="border-b border-rule last:border-0">
+                    <tr key={i} className="border-b border-line last:border-0">
                       <td className="py-1 font-sans text-muted">{HOPS[i]}</td>
                       <td className="py-1 text-right">{fmt(h.delayMs)} ms</td>
                     </tr>
                   ))}
-                  <tr className="border-b border-rule">
+                  <tr className="border-b border-line">
                     <td className="py-1 font-sans text-muted">Server processing</td>
                     <td className="py-1 text-right">{fmt(lastOk.serverProcessingMs)} ms</td>
                   </tr>
                   <tr>
                     <td className="pt-1.5 font-sans font-semibold">Round trip</td>
-                    <td className="pt-1.5 text-right font-semibold text-amber-ink">{fmt(lastOk.rttMs!)} ms</td>
+                    <td className="pt-1.5 text-right font-semibold text-accent">{fmt(lastOk.rttMs!)} ms</td>
                   </tr>
                 </tbody>
               </table>

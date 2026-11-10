@@ -45,7 +45,6 @@ export function ReconstructionSection() {
     <Section
       id="reconstruction"
       title="Reconstructing the missing values"
-      tone="paper"
       intro="Every gap is estimated from measured values only. Estimates are drawn as amber diamonds and are never reused as nodes, so one estimate cannot contaminate the next."
     >
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3" data-reveal>
@@ -97,13 +96,13 @@ export function ReconstructionSection() {
           </p>
           <div className="flex flex-wrap gap-x-4 text-xs text-muted">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-brown" /> measured
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-actual" /> measured
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rotate-45 bg-amber" /> estimated
+              <span className="inline-block h-2.5 w-2.5 rotate-45 bg-estimate" /> estimated
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-crimson" /> missing
+              <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-missing" /> missing
             </span>
           </div>
         </div>
@@ -127,7 +126,7 @@ export function ReconstructionSection() {
           <div className="mt-2 max-h-[300px] overflow-auto">
             <table className="w-full text-sm" data-testid="estimates-table">
               <thead className="sticky top-0 bg-white text-left text-xs text-muted">
-                <tr className="border-b border-rule">
+                <tr className="border-b border-line">
                   <th className="py-1.5 font-semibold">Time</th>
                   <th className="py-1.5 text-right font-semibold">Estimate</th>
                   <th className="py-1.5 text-right font-semibold">Nodes</th>
@@ -137,19 +136,19 @@ export function ReconstructionSection() {
                 {outcomes.map((o) => (
                   <tr
                     key={o.index}
-                    className={`cursor-pointer border-b border-rule last:border-0 hover:bg-paper ${inspected?.index === o.index ? 'bg-amber-soft' : ''}`}
+                    className={`cursor-pointer border-b border-line last:border-0 hover:bg-canvas ${inspected?.index === o.index ? 'bg-estimate-soft' : ''}`}
                     onClick={() => setInspect(o.index)}
                   >
                     <td className="num py-1.5">{fmtSeconds(o.timestamp)} s</td>
                     {o.ok ? (
                       <>
-                        <td className="num py-1.5 text-right text-amber-ink">{fmt(o.value, 2)} ms</td>
+                        <td className="num py-1.5 text-right text-estimate-ink">{fmt(o.value, 2)} ms</td>
                         <td className="num py-1.5 text-right text-muted">
                           {o.method === 'spline' ? `all ${o.nodes.length}` : `${fmtSeconds(o.nodes[0].x)}–${fmtSeconds(o.nodes[o.nodes.length - 1].x)} s`}
                         </td>
                       </>
                     ) : (
-                      <td colSpan={2} className="py-1.5 text-right text-crimson" title={o.reason}>
+                      <td colSpan={2} className="py-1.5 text-right text-missing-ink" title={o.reason}>
                         not interpolable
                       </td>
                     )}
@@ -163,7 +162,7 @@ export function ReconstructionSection() {
           {inspected?.ok ? (
             <>
               <p className="mb-2 text-sm font-semibold">
-                Working for t = {fmtSeconds(inspected.timestamp)} s: <span className="num text-amber-ink">{fmt(inspected.value, 2)} ms</span>
+                Working for t = {fmtSeconds(inspected.timestamp)} s: <span className="num text-estimate-ink">{fmt(inspected.value, 2)} ms</span>
               </p>
               <div className="overflow-x-auto">
                 <ReconstructionSteps outcome={inspected} />

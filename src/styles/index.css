@@ -1,34 +1,53 @@
 @import 'tailwindcss';
 
 /* Fonts are bundled so the site works offline. */
-@import '@fontsource-variable/newsreader/opsz.css';
-@import '@fontsource-variable/newsreader/opsz-italic.css';
-@import '@fontsource-variable/public-sans/wght.css';
+@import '@fontsource-variable/inter/index.css';
 @import '@fontsource-variable/jetbrains-mono/wght.css';
 
+/*
+ * Design tokens. Every colour on the site comes from here (Tailwind utilities such as
+ * bg-surface, text-muted, border-line) or from src/styles/tokens.ts, which mirrors these
+ * values for SVG charts.
+ */
 @theme {
-  --color-ivory: #faf8f4;
-  --color-paper: #f3efe7; /* alternate section background */
-  --color-rule: #e4dccf; /* hairlines and card borders */
-  --color-rule-strong: #cdbfac;
-  --color-crimson: #8e252d;
-  --color-crimson-soft: #f4e4e2;
-  --color-brown: #633f32;
-  --color-amber: #c18b52;
-  --color-amber-ink: #7f5426; /* amber dark enough for text on ivory */
-  --color-amber-soft: #f6ebdc;
-  --color-charcoal: #252525;
-  --color-muted: #5f5751; /* secondary text, 6.6:1 on ivory */
-  --color-night: #1e1a17; /* visualization panels */
-  --color-night-2: #2a2420;
-  --color-night-rule: #3a332e;
-  --color-night-ink: #e9e2d6;
-  --color-night-muted: #b5a999;
-  --color-alert: #e59a8f; /* crimson tint readable on night */
+  /* surfaces and text */
+  --color-canvas: #f8fafc; /* page background */
+  --color-surface: #ffffff; /* cards, alternate sections */
+  --color-ink: #111827; /* primary text */
+  --color-muted: #64748b; /* secondary text, 4.6:1 on canvas */
+  --color-line: #e2e8f0; /* borders, grid lines */
+  --color-line-strong: #cbd5e1;
 
-  --font-serif: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Public Sans Variable', 'Segoe UI', system-ui, sans-serif;
+  /* brand accent */
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-soft: #eff6ff;
+
+  /* data semantics */
+  --color-actual: #2563eb; /* measured values */
+  --color-estimate: #f59e0b; /* interpolated values (marks) */
+  --color-estimate-ink: #b45309; /* interpolated values as text, 5:1 on white */
+  --color-estimate-soft: #fffbeb;
+  --color-missing: #ef4444; /* missing records (marks) */
+  --color-missing-ink: #dc2626; /* missing records and errors as text */
+  --color-missing-soft: #fef2f2;
+  --color-success: #16a34a; /* successful packets */
+  --color-failure: #dc2626; /* failed packets */
+
+  /* dark visualisation panels */
+  --color-panel: #0f172a;
+  --color-panel-2: #1e293b;
+  --color-panel-line: #334155;
+  --color-panel-ink: #f8fafc;
+  --color-panel-muted: #94a3b8;
+  --color-panel-accent: #38bdf8;
+  --color-panel-alert: #f87171; /* failures on dark, 5.6:1 */
+
+  --font-sans: 'Inter Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, Consolas, monospace;
+
+  --radius-card: 0.625rem;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
 }
 
 @layer base {
@@ -38,28 +57,32 @@
   }
   body {
     margin: 0;
-    background: var(--color-ivory);
-    color: var(--color-charcoal);
+    background: var(--color-canvas);
+    color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.6;
+    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   :focus-visible {
-    outline: 2px solid var(--color-amber);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: 4px;
   }
   button {
     cursor: pointer;
   }
+  button:disabled {
+    cursor: not-allowed;
+  }
   /* charts draw at their measured width; until measured they must not widen their container */
   svg {
     max-width: 100%;
   }
-  button:disabled {
-    cursor: not-allowed;
+  ::selection {
+    background: var(--color-accent-soft);
   }
 }
 
@@ -75,11 +98,10 @@
       padding-inline: 2rem;
     }
   }
-  .heading-serif {
-    font-family: var(--font-serif);
-    font-variation-settings: 'opsz' 48;
-    font-weight: 450;
-    letter-spacing: -0.012em;
+  .heading {
+    font-weight: 650;
+    letter-spacing: -0.022em;
+    color: var(--color-ink);
   }
   .num {
     font-family: var(--font-mono);
@@ -92,94 +114,76 @@
     justify-content: center;
     gap: 0.5rem;
     border-radius: 0.5rem;
-    padding: 0.6rem 1.1rem;
-    font-size: 0.9375rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    line-height: 1.2;
-    transition: background-color 140ms, color 140ms, border-color 140ms;
-    border: 1.5px solid transparent;
+    line-height: 1.25;
+    transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
+    border: 1px solid transparent;
   }
   .btn-primary {
-    background: var(--color-crimson);
+    background: var(--color-accent);
     color: #fff;
+    box-shadow: 0 1px 2px rgb(37 99 235 / 0.25);
   }
   .btn-primary:hover:not(:disabled) {
-    background: #74191f;
+    background: var(--color-accent-hover);
   }
   .btn-secondary {
-    border-color: var(--color-rule-strong);
-    color: var(--color-charcoal);
-    background: #fff;
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+    background: var(--color-surface);
   }
   .btn-secondary:hover:not(:disabled) {
-    border-color: var(--color-charcoal);
-  }
-  .btn-dark {
-    border-color: var(--color-night-rule);
-    color: var(--color-night-ink);
-    background: var(--color-night-2);
-  }
-  .btn-dark:hover:not(:disabled) {
-    border-color: var(--color-night-muted);
+    background: var(--color-canvas);
+    border-color: #94a3b8;
   }
   .btn:disabled {
-    opacity: 0.45;
+    opacity: 0.5;
   }
   .btn-sm {
-    padding: 0.4rem 0.75rem;
+    padding: 0.375rem 0.7rem;
     font-size: 0.8125rem;
   }
 
   .card {
-    background: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: 0.875rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
   }
   .panel-dark {
-    background: var(--color-night);
-    color: var(--color-night-ink);
-    border-radius: 1rem;
+    background: var(--color-panel);
+    color: var(--color-panel-ink);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px -12px rgb(15 23 42 / 0.45);
   }
 
-  /* pill segmented control */
+  /* segmented control: the active option is a white chip with a blue label */
   .segmented {
     display: inline-flex;
     padding: 3px;
     gap: 2px;
-    border-radius: 0.6rem;
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
+    border-radius: 0.5rem;
+    background: #f1f5f9;
+    border: 1px solid var(--color-line);
   }
   .segmented > button {
-    border-radius: 0.45rem;
-    padding: 0.4rem 0.85rem;
-    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.8rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--color-muted);
+    transition: color 150ms, background-color 150ms;
   }
   .segmented > button:hover {
-    color: var(--color-charcoal);
+    color: var(--color-ink);
   }
   .segmented > button[aria-pressed='true'],
   .segmented > button[aria-selected='true'] {
-    background: #fff;
-    color: var(--color-charcoal);
-    box-shadow: 0 1px 2px rgba(37, 37, 37, 0.12);
-  }
-  .segmented-dark {
-    background: var(--color-night-2);
-    border-color: var(--color-night-rule);
-  }
-  .segmented-dark > button {
-    color: var(--color-night-muted);
-  }
-  .segmented-dark > button:hover {
-    color: var(--color-night-ink);
-  }
-  .segmented-dark > button[aria-pressed='true'] {
-    background: var(--color-night-rule);
-    color: #fff;
-    box-shadow: none;
+    background: var(--color-surface);
+    color: var(--color-accent);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.1);
   }
 
   .field-label {
@@ -189,16 +193,18 @@
   }
   .field-input {
     font-family: var(--font-mono);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     padding: 0.45rem 0.65rem;
-    border: 1px solid var(--color-rule-strong);
-    border-radius: 0.45rem;
-    background: #fff;
-    color: var(--color-charcoal);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.375rem;
+    background: var(--color-surface);
+    color: var(--color-ink);
     width: 100%;
+    transition: border-color 150ms, box-shadow 150ms;
   }
   .field-input:focus {
-    border-color: var(--color-brown);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15);
     outline: none;
   }
 

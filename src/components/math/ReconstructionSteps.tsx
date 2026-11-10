@@ -18,7 +18,7 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
         </thead>
         <tbody>
           {d.basis.map((b) => (
-            <tr key={b.i} className="border-t border-rule">
+            <tr key={b.i} className="border-t border-line">
               <td>{b.i}</td>
               <td className="text-right">{fmtSeconds(b.xi)}</td>
               <td className="text-right">{fmt(b.yi, 1)}</td>
@@ -26,10 +26,10 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
               <td className="text-right">{fmt(b.term, 4)}</td>
             </tr>
           ))}
-          <tr className="border-t-2 border-rule font-semibold">
+          <tr className="border-t-2 border-line font-semibold">
             <td colSpan={3} className="font-sans">P(x) = Σ yᵢ·Lᵢ(x)</td>
             <td className="text-right">Σ Lᵢ = {fmt(d.basis.reduce((s, b) => s + b.basisValue, 0), 5)}</td>
-            <td className="text-right text-amber-ink">{fmt(d.value, 4)}</td>
+            <td className="text-right text-estimate-ink">{fmt(d.value, 4)}</td>
           </tr>
         </tbody>
       </table>
@@ -84,7 +84,7 @@ export function ReconstructionSteps({ outcome }: { outcome: Extract<Reconstructi
           <li>a = {fmt(seg.a, 4)}, b = {fmt(seg.b, 4)}</li>
           <li>c = {fmt(seg.c, 4)}, d = {fmt(seg.d, 4)}</li>
           <li>terms: {d.terms.map((t) => fmt(t, 4)).join(' + ').replace(/\+ -/g, '− ')}</li>
-          <li className="text-amber-ink">S(x) = {fmt(d.value, 4)}</li>
+          <li className="text-estimate-ink">S(x) = {fmt(d.value, 4)}</li>
         </ul>
       </div>
     </div>

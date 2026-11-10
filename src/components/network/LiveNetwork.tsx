@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createLiveEngine, ENGINE_POOL, type LiveRecord } from '../../simulation/networkSimulation/liveEngine'
 import type { ProbeResult } from '../../simulation/networkSimulation/simulateProbe'
 import { Laptop, Router, Server } from './NetworkDevices'
+import { COLORS } from '../../styles/tokens'
 
 // geometry in viewBox units (1000 × 250)
 const EDGE = { client: 190, routerIn: 425, routerOut: 575, server: 812 }
@@ -63,7 +64,7 @@ export function LiveNetwork({ running, speed = 1, lossProbability = 0.06, seed =
         b.setAttribute('opacity', f.reply ? String(f.reply.opacity) : '0')
         if (f.reply) {
           b.setAttribute('cx', xAt(f.reply.pos).toFixed(1))
-          b.setAttribute('stroke', f.reply.lost ? '#e59a8f' : '#c18b52')
+          b.setAttribute('stroke', f.reply.lost ? COLORS.panelAlert : COLORS.success)
         }
       }
       if (f.atServer) busy = true
@@ -102,15 +103,15 @@ export function LiveNetwork({ running, speed = 1, lossProbability = 0.06, seed =
         [EDGE.client, EDGE.routerIn],
         [EDGE.routerOut, EDGE.server],
       ].map(([a, b]) => (
-        <g key={a} stroke="#4a413a" strokeWidth={2} strokeDasharray="2 9" strokeLinecap="round">
+        <g key={a} stroke={COLORS.panelLine} strokeWidth={2} strokeDasharray="2 9" strokeLinecap="round">
           <line x1={a} x2={b} y1={LANE.out} y2={LANE.out} />
           <line x1={b} x2={a} y1={LANE.back} y2={LANE.back} />
         </g>
       ))}
-      <text x={(EDGE.client + EDGE.routerIn) / 2} y={LANE.out - 16} textAnchor="middle" fontSize={17} fill="#b5a999">
+      <text x={(EDGE.client + EDGE.routerIn) / 2} y={LANE.out - 16} textAnchor="middle" fontSize={17} fill={COLORS.panelMuted}>
         echo request
       </text>
-      <text x={(EDGE.client + EDGE.routerIn) / 2} y={LANE.back + 30} textAnchor="middle" fontSize={17} fill="#b5a999">
+      <text x={(EDGE.client + EDGE.routerIn) / 2} y={LANE.back + 30} textAnchor="middle" fontSize={17} fill={COLORS.panelMuted}>
         echo reply
       </text>
       <g transform={`translate(${X.client} 112) scale(0.72)`}>
@@ -122,20 +123,20 @@ export function LiveNetwork({ running, speed = 1, lossProbability = 0.06, seed =
       <g transform={`translate(${X.server} 112) scale(0.72)`}>
         <Server />
       </g>
-      <circle ref={glow} cx={X.server} cy={110} r={58} fill="none" stroke="#c18b52" strokeWidth={2} opacity={0} />
+      <circle ref={glow} cx={X.server} cy={110} r={58} fill="none" stroke={COLORS.panelAccent} strokeWidth={2} opacity={0} />
       {[
         ['Client', X.client],
         ['Router', X.router],
         ['Server', X.server],
       ].map(([name, cx]) => (
-        <text key={name as string} x={cx as number} y={226} textAnchor="middle" fontSize={20} fontWeight={600} fill="#faf8f4">
+        <text key={name as string} x={cx as number} y={226} textAnchor="middle" fontSize={20} fontWeight={600} fill={COLORS.panelInk}>
           {name}
         </text>
       ))}
       {Array.from({ length: ENGINE_POOL }, (_, i) => (
         <g key={i}>
-          <circle ref={(el) => void (req.current[i] = el)} cx={EDGE.client} cy={LANE.out} r={8} fill="#c18b52" opacity={0} />
-          <circle ref={(el) => void (rep.current[i] = el)} cx={EDGE.server} cy={LANE.back} r={7.5} fill="#1e1a17" stroke="#c18b52" strokeWidth={3} opacity={0} />
+          <circle ref={(el) => void (req.current[i] = el)} cx={EDGE.client} cy={LANE.out} r={8} fill={COLORS.panelAccent} opacity={0} data-packet="request" />
+          <circle ref={(el) => void (rep.current[i] = el)} cx={EDGE.server} cy={LANE.back} r={7.5} fill={COLORS.panel} stroke={COLORS.success} strokeWidth={3} opacity={0} />
         </g>
       ))}
     </svg>
