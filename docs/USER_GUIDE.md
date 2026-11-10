@@ -1,5 +1,9 @@
 # User Guide
 
+## Live site
+
+https://network-latency-predictor-gilt.vercel.app (static hosting on Vercel's free plan).
+
 ## Setup
 
 Requires Node.js 20 or newer.

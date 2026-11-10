@@ -8,6 +8,8 @@ Built as a Numerical Methods capstone: a responsive website that opens on a live
 simulation and walks through the whole problem, from why ping records go missing to how
 accurately each method recovers them. Every number on screen comes from the real algorithms.
 
+**Live site: https://network-latency-predictor-gilt.vercel.app**
+
 ![Hero section with the live network simulation](docs/images/overview.png)
 
 ## Features
@@ -47,6 +49,9 @@ npm run typecheck   # tsc -b
 npm test            # Vitest unit and component tests
 npm run test:e2e    # production build + Playwright (first run: npx playwright install chromium)
 npm run check       # all of the above
+
+# run the end-to-end suite against the deployed site instead of a local build
+BASE_URL=https://network-latency-predictor-gilt.vercel.app npx playwright test
 ```
 
 The suite covers the numerical properties of each method (exact polynomial recovery, spline
