@@ -6,7 +6,7 @@ import { parseLatencyCsv, SAMPLE_CSV } from './csv/parseLatencyCsv'
 import { createCsvBundle, createSyntheticBundle } from './datasets'
 import { knownPoints, reconstruct, mergeReconstructions, sampleCurve } from '../reconstruction/reconstruct'
 import { computeErrorMetrics, EvaluationError } from '../evaluation/metrics/metrics'
-import { planExperiment, runAccuracyExperiment } from '../evaluation/comparison/compareMethods'
+import { planExperiment, rankByRmse, runAccuracyExperiment } from '../evaluation/comparison/compareMethods'
 import type { DatasetBundle } from '../types/measurement'
 
 describe('synthetic dataset generator', () => {
@@ -181,6 +181,15 @@ describe('accuracy experiment', () => {
       expect(r.rows.every((row) => row.actual === bundle.groundTruth.values.get(row.sourceIndex))).toBe(true)
     }
     expect(experiment.bestByRmse).not.toBeNull()
+  })
+
+  it('treats Lagrange and Newton as a tie instead of ranking floating-point noise', () => {
+    const bundle = createSyntheticBundle()
+    const { reference, hiddenPositions } = planExperiment(bundle, 15, 1)
+    const experiment = runAccuracyExperiment(reference, hiddenPositions, 4)
+    const ranked = rankByRmse(experiment.results).map((r) => r.method)
+    expect(ranked.indexOf('lagrange')).toBeLessThan(ranked.indexOf('newton'))
+    expect(experiment.tiedBest.includes('lagrange')).toBe(experiment.tiedBest.includes('newton'))
   })
 
   it('scores a polynomial series perfectly when the method can represent it', () => {

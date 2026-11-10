@@ -34,8 +34,22 @@ export interface AccuracyExperiment {
   /** positions within the reference that were hidden */
   readonly hiddenPositions: readonly number[]
   readonly results: readonly MethodEvaluation[]
-  /** method with the lowest RMSE among those that produced metrics */
+  /** method with the lowest RMSE among those that produced metrics (first in METHODS order on a tie) */
   readonly bestByRmse: InterpolationMethod | null
+  /** every method whose RMSE equals the best within floating-point tolerance */
+  readonly tiedBest: readonly InterpolationMethod[]
+}
+
+/** RMSEs closer than this (relative) are the same result up to rounding, e.g. Lagrange vs Newton. */
+export const RMSE_TIE_TOLERANCE = 1e-9
+
+const sameRmse = (a: number, b: number) => Math.abs(a - b) <= RMSE_TIE_TOLERANCE * Math.max(1, Math.abs(a))
+
+/** Methods with metrics, lowest RMSE first; ties keep METHODS order (the sort is stable). */
+export function rankByRmse(results: readonly MethodEvaluation[]): MethodEvaluation[] {
+  return results
+    .filter((r) => r.metrics)
+    .sort((a, b) => (sameRmse(a.metrics!.rmse, b.metrics!.rmse) ? 0 : a.metrics!.rmse - b.metrics!.rmse))
 }
 
 /**
@@ -110,6 +124,8 @@ export function runAccuracyExperiment(
     }
   })
 
-  const ranked = results.filter((r) => r.metrics).sort((a, b) => a.metrics!.rmse - b.metrics!.rmse)
-  return { reference, hiddenPositions, results, bestByRmse: ranked[0]?.method ?? null }
+  const ranked = rankByRmse(results)
+  const best = ranked[0]
+  const tiedBest = best ? ranked.filter((r) => sameRmse(best.metrics!.rmse, r.metrics!.rmse)).map((r) => r.method) : []
+  return { reference, hiddenPositions, results, bestByRmse: best?.method ?? null, tiedBest }
 }
