@@ -91,6 +91,19 @@ test('fullscreen shows only the stage; notes stay off the projected output', asy
   await expect(page.getByTestId('presenter-notes')).toBeVisible()
 })
 
+test('presenter notes open in a separate window that follows the presentation', async ({ page }) => {
+  await open(page)
+  await page.keyboard.press('n')
+  const [popup] = await Promise.all([page.waitForEvent('popup'), page.getByRole('button', { name: 'Open in window' }).click()])
+  await expect(popup.getByText('What to explain')).toBeVisible()
+  await expect(popup.getByRole('heading', { name: 'Understanding Network Latency' })).toBeVisible()
+  await expect(page.getByTestId('presenter-notes')).toHaveCount(0) // the drawer closes; notes now live only in the window
+  await page.keyboard.press('ArrowRight')
+  await expect(popup.getByRole('heading', { name: 'The Journey of a Network Packet' })).toBeVisible()
+  await popup.keyboard.press('ArrowRight') // keys pressed in the notes window drive the stage too
+  await expect(page.getByTestId('chapter-3')).toBeVisible()
+})
+
 test('chapter 2 sends a ping and records a round-trip time', async ({ page }) => {
   await open(page)
   await page.keyboard.press('2')

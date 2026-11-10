@@ -23,14 +23,15 @@ const FORMULAS: Record<InterpolationMethod, { tex: string[]; text: string }> = {
   newton: {
     tex: [
       'P(x) = a_0 + a_1(x-x_0) + a_2(x-x_0)(x-x_1) + \\cdots',
-      'a_k = f[x_0,\\dots,x_k],\\quad f[x_i,\\dots,x_{i+k}] = \\frac{f[x_{i+1},\\dots,x_{i+k}] - f[x_i,\\dots,x_{i+k-1}]}{x_{i+k}-x_i}',
+      'a_k = f[x_0,\\dots,x_k]',
+      'f[x_i,\\dots,x_{i+k}] = \\frac{f[x_{i+1},\\dots,x_{i+k}] - f[x_i,\\dots,x_{i+k-1}]}{x_{i+k}-x_i}',
     ],
     text: 'The same polynomial as Lagrange, written so that adding a node adds one term. Nested multiplication evaluates it in n steps.',
   },
   spline: {
     tex: [
       'S_i(x) = a_i + b_i t + c_i t^2 + d_i t^3,\\quad t = x - x_i',
-      'h_{i-1}M_{i-1} + 2(h_{i-1}+h_i)M_i + h_iM_{i+1} = 6\\left(\\frac{y_{i+1}-y_i}{h_i} - \\frac{y_i-y_{i-1}}{h_{i-1}}\\right)',
+      '\\begin{aligned} &h_{i-1}M_{i-1} + 2(h_{i-1}+h_i)M_i + h_iM_{i+1} \\\\ &\\qquad = 6\\left(\\frac{y_{i+1}-y_i}{h_i} - \\frac{y_i-y_{i-1}}{h_{i-1}}\\right) \\end{aligned}',
     ],
     text: 'One cubic per interval. Values, slopes and curvatures match at every knot; the natural ends have M₀ = Mₙ = 0, where M = S″.',
   },
@@ -65,7 +66,7 @@ export default function NumericalMethods({ step }: ChapterProps) {
             ))}
           </div>
           <h2 className="section-heading mt-6">{METHOD_LABELS[method]}</h2>
-          <div className="mt-3 space-y-1 text-[25px]" data-testid="method-formula">
+          <div className="mt-3 space-y-1 text-[22px]" data-testid="method-formula">
             {FORMULAS[method].tex.map((t) => (
               <Tex key={t} tex={t} display />
             ))}

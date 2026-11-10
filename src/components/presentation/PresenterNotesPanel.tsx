@@ -24,7 +24,7 @@ export function PresenterNotesPanel({
       data-testid="presenter-notes"
       className={`presenter-only flex h-full flex-col overflow-y-auto bg-paper text-charcoal ${inWindow ? 'p-8' : 'border-l-2 border-rule p-6'}`}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col-reverse gap-3">
         <div>
           <p className="text-[14px] font-semibold text-muted">
             Presenter notes, chapter {chapter.number}
@@ -33,7 +33,7 @@ export function PresenterNotesPanel({
           <h2 className="mt-1 font-serif text-[24px] leading-tight">{chapter.title}</h2>
         </div>
         {!inWindow && (
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 justify-end gap-2">
             {onPopOut && (
               <button type="button" onClick={onPopOut} className="rounded border border-charcoal px-2 py-1 text-[13px] font-semibold hover:bg-charcoal hover:text-ivory">
                 Open in window

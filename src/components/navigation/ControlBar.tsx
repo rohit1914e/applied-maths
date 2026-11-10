@@ -37,7 +37,7 @@ const ICONS = {
   notes: 'M5 4h14v16H5zM9 9h6M9 13h6M9 17h3',
   expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
   collapse: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5',
-  restart: 'M4 4v6h6M4 10a8 8 0 1 1 2 6',
+  restart: 'M6 5v14M19 6l-9 6 9 6z',
 }
 
 /**
