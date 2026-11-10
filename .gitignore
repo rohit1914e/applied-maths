@@ -25,3 +25,12 @@ dist-ssr
 test-results/
 playwright-report/
 
+# Environment files and credentials (none are used today; keep them out if added later)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# TypeScript build info
+*.tsbuildinfo
